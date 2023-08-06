@@ -1,0 +1,971 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://liuxingguo9349.github.io/oucblog</id>
+    <title>刘兴国的博客</title>
+    <updated>2023-08-06T10:08:49.459Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://liuxingguo9349.github.io/oucblog"/>
+    <link rel="self" href="https://liuxingguo9349.github.io/oucblog/atom.xml"/>
+    <subtitle>以梦为马，不负韶华</subtitle>
+    <logo>https://liuxingguo9349.github.io/oucblog/images/avatar.png</logo>
+    <icon>https://liuxingguo9349.github.io/oucblog/favicon.ico</icon>
+    <rights>All rights reserved 2023, 刘兴国的博客</rights>
+    <entry>
+        <title type="html"><![CDATA[【第4周】MobileNet_ShuffleNet]]></title>
+        <id>https://liuxingguo9349.github.io/oucblog/post/di-4-zhou-mobilenet_shufflenet/</id>
+        <link href="https://liuxingguo9349.github.io/oucblog/post/di-4-zhou-mobilenet_shufflenet/">
+        </link>
+        <updated>2023-08-06T09:13:20.000Z</updated>
+        <content type="html"><![CDATA[<p>MobileNet V1和V2是两种轻量级的神经网络，主要用于图像分类和目标检测等移动端的视觉任务。它们的主要区别在于以下几个方面：</p>
+<ul>
+<li>MobileNet V1使用了深度可分离卷积（Depthwise Separable Convolution），将标准的卷积分解为深度卷积（Depthwise Convolution）和逐点卷积（Pointwise Convolution），从而减少了计算量和参数量。</li>
+<li>MobileNet V2引入了线性瓶颈（Linear Bottleneck）和反向残差结构（Inverted Residual Block），将输入和输出的通道数降低，而在中间层使用较多的通道数，从而提高了特征表达能力。</li>
+<li>MobileNet V2还使用了线性激活函数（Linear Activation）替换了V1中的ReLU激活函数，避免了在低维空间中特征退化（Feature Degradation）的问题。</li>
+</ul>
+<p>MobileNet V2相比V1在性能上有一定的提升，同时也保持了轻量级的特点。它们都是适合在移动设备上运行的高效网络。</p>
+<p>MobileNet V3是一种轻量级的卷积神经网络，主要用于移动端的图像分类和目标检测等视觉任务。它是基于网络结构搜索（NAS）和NetAdapt算法优化得到的，同时也引入了一些新的架构设计，如线性瓶颈、反向残差结构、h-swish激活函数和SE通道注意力机制。MobileNet V3有两个版本：Large和Small，分别适用于高性能和低资源的场景。相比于前两代的MobileNet V1和V2，MobileNet V3在准确率和速度上都有显著的提升，达到了移动端网络的新的水平。</p>
+<p>ShuffleNetV1是一种轻量级的卷积神经网络，主要用于移动端的图像分类和目标检测等视觉任务。它的基本原理是利用分组卷积（Group Convolution）和通道混洗（Channel Shuffle）来减少计算量和参数量，同时提高模型的表达能力和泛化能力。</p>
+<p>分组卷积是将输入的特征图按照通道维度分成若干个组，然后每个组使用不同的卷积核进行卷积，最后将各个组的输出拼接起来。这样可以减少卷积核的数量，从而降低计算复杂度。但是，分组卷积也有一个缺点，就是每个组内的通道只能与自己组内的通道进行交互，而不能与其他组的通道进行交互，这会降低特征的多样性和丰富性。</p>
+<p>通道混洗是为了解决分组卷积的这个缺点而提出的一种操作。它的作用是在分组卷积之后，将各个组内的通道重新排列，使得每个组内的通道都包含了其他组的信息，从而增强了特征的多样性和丰富性。具体来说，通道混洗的步骤如下：</p>
+<ul>
+<li>假设输入特征图有 c 个通道，分成 g 个组，每个组有 c/g 个通道。</li>
+<li>将输入特征图按照通道维度重塑为 (g, c/g, h, w) 的形状，其中 h 和 w 是特征图的高度和宽度。</li>
+<li>将重塑后的特征图在第一维和第二维进行转置，得到 (c/g, g, h, w) 的形状。</li>
+<li>将转置后的特征图再按照通道维度重塑为 (c, h, w) 的形状。</li>
+</ul>
+<p>通过这样的操作，原来每个组内只有 c/g 个不同的通道，现在每个组内有 g 个不同的通道，且每个通道都包含了其他组的信息。这样就实现了通道之间的信息交流，增强了模型的表达能力。</p>
+<p>ShuffleNetV1的网络结构由多个基本单元（ShuffleNet Unit）构成，每个基本单元包含两个分组卷积和一个深度可分离卷积（Depthwise Separable Convolution），以及一个残差连接（Residual Connection）。在第一个分组卷积之后，还要进行一次通道混洗操作。根据步长（Stride）的不同，基本单元可以分为两种类型：步长为 1 的基本单元采用残差相加（Residual Add）来实现残差连接；步长为 2 的基本单元采用残差拼接（Residual Concat）来实现残差连接。</p>
+<p>ShuffleNetV1还根据不同的计算量设置了不同的分组数（Group Number），以适应不同的硬件平台。一般来说，分组数越大，计算量越小，但是准确率也越低；分组数越小，计算量越大，但是准确率也越高。原论文中给出了三种分组数：1、2、3、8。</p>
+<p>SENet是一种基于注意力机制的卷积神经网络，主要用于图像分类和目标检测等视觉任务。它的基本原理是通过一个称为“Squeeze-and-Excitation”的模块，来学习和调整每个通道的特征权重，从而提高特征的判别能力和网络性能。</p>
+<p>Squeeze-and-Excitation模块包含两个操作：Squeeze和Excitation。Squeeze操作是对输入的特征图进行全局平均池化，将其压缩成一个特征向量，以捕捉全局的特征统计信息。Excitation操作是对压缩后的特征向量进行两次全连接层和非线性激活函数的变换，以学习每个通道的权重向量。这个权重向量被应用于原始的特征图上的每个通道，以对不同通道的特征进行加权。通过这种方式，SENet能够自适应地选择和强调重要的特征通道，提高特征的判别能力。</p>
+<p>SENet可以很容易地集成到现有的卷积神经网络中，只需要在每个卷积层后面加上一个Squeeze-and-Excitation模块即可。这样做可以显著提升网络性能，而且代价很小。SENet在ImageNet 2017竞赛中获得了图像分类任务的冠军，将top-5错误率降低到2.251%，创造了新的纪录。</p>
+<h2 id="1-训练hybridsn然后多测试几次会发现每次分类的结果都不一样请思考为什么">1、训练HybridSN，然后多测试几次，会发现每次分类的结果都不一样，请思考为什么？</h2>
+<p>HybridSN是一种混合了3D和2D卷积神经网络的模型，用于高光谱图像分类。训练HybridSN的过程中，有一些随机因素会影响每次分类的结果，例如：</p>
+<ul>
+<li>初始化权重：HybridSN的网络参数在训练之前需要进行随机初始化，不同的初始化值会导致不同的梯度下降方向和收敛速度，从而影响最终的分类效果。</li>
+<li>随机梯度下降（SGD）：HybridSN使用SGD作为优化算法，每次只使用一个小批量（mini-batch）的数据来更新网络参数，这样可以提高训练速度和泛化能力，但也会引入一定的噪声和不稳定性，导致每次迭代的结果有所差异。</li>
+<li>Dropout层：HybridSN在2D卷积层后面加入了Dropout层，用于随机丢弃一些神经元，以防止过拟合和增加模型的鲁棒性。但是，Dropout层也会使得每次训练的网络结构不完全相同，从而影响每次分类的结果。</li>
+<li>数据集划分：HybridSN使用一部分数据作为训练集，另一部分数据作为测试集。如果数据集划分的方式不固定，那么每次训练和测试的数据可能不同，这也会导致每次分类的结果有所变化。</li>
+</ul>
+<h2 id="2-如果想要进一步提升高光谱图像的分类性能可以如何改进">2、如果想要进一步提升高光谱图像的分类性能，可以如何改进？</h2>
+<p>高光谱图像分类是一个具有挑战性和重要性的研究领域，一些改进的空间和方向：</p>
+<ul>
+<li>利用深度学习方法来提取高光谱图像的特征。深度学习方法可以自动学习高层次的抽象特征，而不需要人工设计或选择特征。深度学习方法也可以利用大量的数据来提高模型的泛化能力和鲁棒性。已经有一些基于卷积神经网络（CNN）或者变换器（Transformer）的方法被提出来，如MST¹、MST++²、HybridSN³等，都取得了不错的效果。</li>
+<li>利用多源数据或者多模态数据来辅助高光谱图像分类。高光谱图像虽然包含了丰富的光谱信息，但是也存在一些局限性，如空间分辨率低、数据冗余大、光谱混合严重等。为了克服这些局限性，可以利用其他类型的数据来提供更多的信息，如RGB图像、LiDAR数据、DEM数据等。这些数据可以与高光谱图像进行融合或者联合分析，以提高分类的准确性和可靠性。</li>
+<li>利用半监督学习或者无监督学习来降低对标注数据的依赖。高光谱图像分类通常需要大量的标注数据来训练模型，但是标注数据的获取是一件耗时耗力的工作，而且可能存在标注错误或者不一致的问题。为了降低对标注数据的依赖，可以利用半监督学习或者无监督学习的方法，利用未标注数据或者自身数据来增强模型的学习能力。</li>
+</ul>
+<h2 id="3-depth-wise-conv-和-分组卷积有什么区别与联系">3、depth-wise conv 和 分组卷积有什么区别与联系？</h2>
+<p>Depth-wise conv 和 分组卷积是两种减少卷积参数量和计算量的方法，它们都是将输入特征图按照通道维度分成若干个组，然后对每个组进行卷积操作，最后将各个组的输出拼接起来。它们的区别和联系如下：</p>
+<ul>
+<li>Depth-wise conv 是一种特殊的分组卷积，它的分组数量等于输入特征图的通道数，也就是每个通道单独进行卷积，不与其他通道交互。Depth-wise conv 只能保持输入和输出特征图的通道数一致，不能改变通道数。因此，Depth-wise conv 通常需要配合 Point-wise conv（即1x1的卷积）来实现通道数的变化。Depth-wise conv 的参数量和计算量是最少的，但是也可能损失一些特征的多样性和丰富性。</li>
+<li>分组卷积是一种更一般的方法，它的分组数量可以自由设定，只要能被输入和输出特征图的通道数整除即可。分组卷积可以实现输入和输出特征图的通道数变化，也可以保持不变。分组卷积的参数量和计算量取决于分组数量，一般来说，分组数量越大，参数量和计算量越小，但是准确率也越低；分组数量越小，参数量和计算量越大，但是准确率也越高。当分组数量为1时，分组卷积就退化为常规卷积；当分组数量等于输入特征图的通道数时，分组卷积就变成了Depth-wise conv。</li>
+</ul>
+<h2 id="4-senet-的注意力是不是可以加在空间位置上">4、SENet 的注意力是不是可以加在空间位置上？</h2>
+<p>SENet的注意力是基于通道维度的，也就是说，它可以学习和调整每个通道的特征权重，从而提高特征的判别能力。但是，SENet并没有考虑空间维度的信息，也就是说，它没有区分不同位置的特征的重要性。因此，SENet的注意力可以加在空间位置上，以进一步提高模型的性能。</p>
+<h2 id="5-在-shufflenet-中通道的-shuffle-如何用代码实现">5、在 ShuffleNet 中，通道的 shuffle 如何用代码实现？</h2>
+<pre><code>def channel_shuffle(x, groups):
+    # x 是一个四维张量，形状为 [batch_size, channels, height, width]
+    batch_size, channels, height, width = x.size()
+    # 确保通道数能被分组数整除
+    assert channels % groups == 0
+    # 将通道按照分组数进行分组
+    channels_per_group = channels // groups
+    # 将张量的形状改为 [batch_size, groups, channels_per_group, height, width]
+    x = x.view(batch_size, groups, channels_per_group, height, width)
+    # 将分组和通道进行转置
+    x = x.transpose(1, 2).contiguous()
+    # 将张量的形状恢复为 [batch_size, channels, height, width]
+    x = x.view(batch_size, -1, height, width)
+    return x
+</code></pre>
+<p>这段代码的思路是先将输入张量按照分组数进行分组，然后将不同组之间的通道进行转置，最后恢复原来的张量形状，这样就实现了通道的shuffle。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[【第3周】ResNet+ResNeXt]]></title>
+        <id>https://liuxingguo9349.github.io/oucblog/post/di-3-zhou-resnetresnext/</id>
+        <link href="https://liuxingguo9349.github.io/oucblog/post/di-3-zhou-resnetresnext/">
+        </link>
+        <updated>2023-07-30T02:01:30.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="1-论文阅读与视频学习">1、论文阅读与视频学习：</h1>
+<h2 id="resnet-阅读论文-deep-residual-learning-for-image-recognition">ResNet 阅读论文 Deep Residual Learning for Image Recognition</h2>
+<p>这篇论文提出了一种深度残差学习的方法，用于解决深度神经网络的退化问题。退化问题是指随着网络深度的增加，网络的训练误差和测试误差都会增大，而不是过拟合。作者认为这是因为深层网络难以学习到恒等映射，即使理想情况下，增加网络深度不应该降低网络性能。为了解决这个问题，作者引入了残差学习的概念，即让网络学习输入和输出之间的残差函数，而不是直接学习输入到输出的映射。这样可以使得网络更容易拟合恒等映射，从而提高网络性能。作者在多个图像识别任务上验证了残差学习的有效性，包括ImageNet、CIFAR-10、CIFAR-100和COCO数据集。实验结果表明，残差学习可以显著提升深层网络的准确率，并且可以训练出超过1000层的网络。作者还探讨了残差学习的一些变体和扩展，如瓶颈结构、预激活结构和多尺度残差网络等。这篇论文开创了深度残差学习的新领域，并对深度神经网络的设计和优化有重要的启示。</p>
+<p>ResNet是一种深度残差网络，它可以有效地解决深度神经网络中的梯度消失和网络退化的问题。ResNet的核心思想是在网络中添加跨层的残差连接，使得每一层都可以学习到一个残差函数，而不是直接拟合输入和输出的映射关系。这样可以保证网络的信息流动和反向传播，从而提高网络的性能和稳定性。ResNet的一个基本单元是残差块，它由两个或多个卷积层和一个跳跃连接组成。跳跃连接可以是恒等映射或者线性变换，以保证输入和输出的维度一致。</p>
+<p>Pytorch是一个基于Python的深度学习框架，它提供了灵活和高效的数据处理、模型构建、训练和测试等功能。Pytorch中有一个torchvision模块，它包含了常用的图像处理和计算机视觉相关的数据集、模型、变换等工具。其中就有ResNet的预训练模型，可以直接调用或者进行微调。要使用Pytorch搭建ResNet网络，可以参考以下代码：</p>
+<pre><code>import torch
+import torchvision
+
+# 定义超参数
+num_classes = 10 # 分类数
+batch_size = 64 # 批大小
+num_epochs = 20 # 训练轮数
+learning_rate = 0.01 # 学习率
+
+# 加载数据集
+train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, transform=torchvision.transforms.ToTensor(), download=True)
+test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, transform=torchvision.transforms.ToTensor(), download=True)
+train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
+test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=2)
+
+# 加载预训练模型
+model = torchvision.models.resnet18(pretrained=True)
+
+# 修改最后一层的输出维度
+model.fc = torch.nn.Linear(model.fc.in_features, num_classes)
+
+# 移动模型到GPU
+device = torch.device(&quot;cuda:0&quot; if torch.cuda.is_available() else &quot;cpu&quot;)
+model.to(device)
+
+# 定义损失函数和优化器
+criterion = torch.nn.CrossEntropyLoss()
+optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
+
+# 训练模型
+for epoch in range(num_epochs):
+    running_loss = 0.0
+    for i, data in enumerate(train_loader):
+        # 获取输入和标签
+        inputs, labels = data[0].to(device), data[1].to(device)
+        # 清零梯度
+        optimizer.zero_grad()
+        # 前向传播
+        outputs = model(inputs)
+        # 计算损失
+        loss = criterion(outputs, labels)
+        # 反向传播和更新参数
+        loss.backward()
+        optimizer.step()
+        # 打印统计信息
+        running_loss += loss.item()
+        if i % 200 == 199:    # 每200个批次打印一次平均损失
+            print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, running_loss / 200))
+            running_loss = 0.0
+
+print('Finished Training')
+
+# 测试模型
+correct = 0
+total = 0
+with torch.no_grad():
+    for data in test_loader:
+        images, labels = data[0].to(device), data[1].to(device)
+        outputs = model(images)
+        _, predicted = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+
+print('Accuracy of the network on the 10000 test images: %d %%' % (100 * correct / total))
+</code></pre>
+<h2 id="resnext-阅读论文-aggregated-residual-transformations-for-deep-neural-networks">ResNeXt 阅读论文 Aggregated Residual Transformations for Deep Neural Networks</h2>
+<p>ResNeXt是一种深度神经网络，它使用了分组卷积和残差连接来提高模型的性能和效率。分组卷积可以减少参数量和计算量，同时增加特征的多样性。残差连接可以解决梯度消失和网络退化的问题，使得网络可以更深。ResNeXt的创新之处在于，它将分组卷积的每个分支都视为一个残差单元，从而实现了对残差连接的扩展。ResNeXt的结构可以用一个超参数C来控制，C表示每个分组卷积的分支数。ResNeXt在图像分类、目标检测和语义分割等任务上都取得了优异的结果，证明了它的有效性和通用性。</p>
+<p>ResNeXt是一种深度神经网络，它在ResNet的基础上引入了分组卷积的概念，从而提高了模型的性能和效率。ResNeXt的核心思想是将每个残差块中的卷积层分成多个分支，每个分支都是一个小的卷积网络，然后将这些分支的输出相加作为残差块的输出。这样可以减少参数量和计算量，同时增加特征的多样性和表达能力。ResNeXt的结构可以用一个超参数C来控制，C表示每个残差块中的分支数。ResNeXt在图像分类、目标检测和语义分割等任务上都取得了优异的结果，证明了它的有效性和通用性。</p>
+<p>Pytorch是一个基于Python的深度学习框架，它提供了灵活和高效的数据处理、模型构建、训练和测试等功能。Pytorch中有一个torchvision模块，它包含了常用的图像处理和计算机视觉相关的数据集、模型、变换等工具。其中就有ResNeXt的预训练模型，可以直接调用或者进行微调。要使用Pytorch搭建ResNeXt网络，可以参考以下代码：</p>
+<pre><code>import torch
+import torchvision
+
+# 定义超参数
+num_classes = 10 # 分类数
+batch_size = 64 # 批大小
+num_epochs = 20 # 训练轮数
+learning_rate = 0.01 # 学习率
+
+# 加载数据集
+train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, transform=torchvision.transforms.ToTensor(), download=True)
+test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, transform=torchvision.transforms.ToTensor(), download=True)
+train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
+test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=2)
+
+# 加载预训练模型
+model = torchvision.models.resnext50_32x4d(pretrained=True)
+
+# 修改最后一层的输出维度
+model.fc = torch.nn.Linear(model.fc.in_features, num_classes)
+
+# 移动模型到GPU
+device = torch.device(&quot;cuda:0&quot; if torch.cuda.is_available() else &quot;cpu&quot;)
+model.to(device)
+
+# 定义损失函数和优化器
+criterion = torch.nn.CrossEntropyLoss()
+optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
+
+# 训练模型
+for epoch in range(num_epochs):
+    running_loss = 0.0
+    for i, data in enumerate(train_loader):
+        # 获取输入和标签
+        inputs, labels = data[0].to(device), data[1].to(device)
+        # 清零梯度
+        optimizer.zero_grad()
+        # 前向传播
+        outputs = model(inputs)
+        # 计算损失
+        loss = criterion(outputs, labels)
+        # 反向传播和更新参数
+        loss.backward()
+        optimizer.step()
+        # 打印统计信息
+        running_loss += loss.item()
+        if i % 200 == 199:    # 每200个批次打印一次平均损失
+            print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, running_loss / 200))
+            running_loss = 0.0
+
+print('Finished Training')
+
+# 测试模型
+correct = 0
+total = 0
+with torch.no_grad():
+    for data in test_loader:
+        images, labels = data[0].to(device), data[1].to(device)
+        outputs = model(images)
+        _, predicted = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+
+print('Accuracy of the network on the 10000 test images: %d %%' % (100 * correct / total))
+</code></pre>
+<h1 id="2-猫狗大战-经典图像分类题">2、猫狗大战--经典图像分类题</h1>
+<pre><code># 导入需要的库
+import numpy as np
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
+# 定义图片的大小和批次大小
+img_size = (150, 150)
+batch_size = 32
+
+# 创建一个图片数据生成器，用于从文件夹中读取图片并进行预处理
+train_datagen = ImageDataGenerator(
+    rescale=1./255, # 将像素值缩放到0-1之间
+    rotation_range=40, # 随机旋转图片的角度
+    width_shift_range=0.2, # 随机水平移动图片
+    height_shift_range=0.2, # 随机垂直移动图片
+    shear_range=0.2, # 随机剪切图片
+    zoom_range=0.2, # 随机缩放图片
+    horizontal_flip=True, # 随机水平翻转图片
+    fill_mode='nearest' # 填充空白区域的方式
+)
+
+# 创建一个训练数据集，从train文件夹中读取猫狗图片，并按照类别标签分组
+train_dataset = train_datagen.flow_from_directory(
+    'train', # 文件夹路径
+    target_size=img_size, # 图片大小
+    batch_size=batch_size, # 批次大小
+    class_mode='binary' # 类别模式，二分类，1=dog，0=cat
+)
+
+# 创建一个测试数据生成器，用于从文件夹中读取图片并进行预处理，不需要增强数据
+test_datagen = ImageDataGenerator(rescale=1./255)
+
+# 创建一个测试数据集，从test文件夹中读取猫狗图片，并按照类别标签分组
+test_dataset = test_datagen.flow_from_directory(
+    'test', # 文件夹路径
+    target_size=img_size, # 图片大小
+    batch_size=batch_size, # 批次大小
+    class_mode='binary' # 类别模式，二分类，1=dog，0=cat
+)
+
+# 定义一个卷积神经网络模型，用于识别猫狗图片
+model = keras.Sequential([
+    layers.Conv2D(32, 3, activation='relu', input_shape=(150, 150, 3)), # 卷积层，32个过滤器，3x3的核大小，激活函数为relu，输入形状为150x150x3的图片
+    layers.MaxPooling2D(2), # 最大池化层，2x2的窗口大小，用于降低维度和提取特征
+    layers.Conv2D(64, 3, activation='relu'), # 卷积层，64个过滤器，3x3的核大小，激活函数为relu
+    layers.MaxPooling2D(2), # 最大池化层，2x2的窗口大小，用于降低维度和提取特征
+    layers.Conv2D(128, 3, activation='relu'), # 卷积层，128个过滤器，3x3的核大小，激活函数为relu
+    layers.MaxPooling2D(2), # 最大池化层，2x2的窗口大小，用于降低维度和提取特征
+    layers.Flatten(), # 扁平化层，将多维的特征图转换为一维的向量，用于连接全连接层
+    layers.Dense(256, activation='relu'), # 全连接层，256个神经元，激活函数为relu，用于学习特征和分类规则
+    layers.Dropout(0.5), # Dropout层，随机丢弃一半的神经元，用于防止过拟合和增加泛化能力
+    layers.Dense(1, activation='sigmoid') # 全连接层，1个神经元，激活函数为sigmoid，用于输出二分类的概率，1=dog，0=cat
+])
+
+# 编译模型，指定损失函数，优化器和评估指标
+model.compile(
+    loss='binary_crossentropy', # 二分类的交叉熵损失函数，用于衡量预测值和真实值之间的差异
+    optimizer='adam', # Adam优化器，一种自适应的梯度下降算法，用于更新模型的参数
+    metrics=['accuracy'] # 准确率指标，用于衡量模型的表现
+)
+
+# 训练模型，指定训练数据集，验证数据集，训练轮数和每轮的步数
+model.fit(
+    train_dataset, # 训练数据集
+    validation_data=test_dataset, # 验证数据集
+    epochs=20, # 训练轮数
+    steps_per_epoch=len(train_dataset), # 每轮的步数，等于训练数据集的大小除以批次大小
+    validation_steps=len(test_dataset) # 每轮的验证步数，等于验证数据集的大小除以批次大小
+)
+
+# 保存模型
+model.save('cat_dog_model.h5')
+</code></pre>
+<h1 id="3-本周的思考题">3、本周的思考题：</h1>
+<p>1、Residual learning 的基本原理？<br>
+残差学习（Residual Learning）的基本原理是：让权重层学习输入层的残差函数，而不是学习无参考的函数。残差网络（Residual Network，ResNet）是一种具有跳跃连接（skip connections）的网络，跳跃连接可以执行恒等映射（identity mapping），并通过加法将层的输出与输入合并。这样可以使得深度网络更容易训练，也可以提高准确率。<br>
+2、Batch Normailization 的原理，思考 BN、LN、IN 的主要区别。<br>
+Batch Normalization (BN) 的原理是：对每个通道的数据，在一个 batch 的维度上进行归一化，使得每个通道的均值为 0，方差为 1。这样可以加速训练，提高准确率，防止梯度消失或爆炸。<br>
+Layer Normalization (LN) 的原理是：对每个样本的数据，在通道、高、宽的维度上进行归一化，使得每个样本的均值为 0，方差为 1。这样可以减少对 batch size 的依赖，适用于 RNN 等变长输入的模型。<br>
+Instance Normalization (IN) 的原理是：对每个样本的数据，在通道的维度上进行归一化，使得每个样本的每个通道的均值为 0，方差为 1。这样可以增强样本之间的差异，适用于风格迁移等任务。<br>
+Group Normalization (GN) 的原理是：对每个样本的数据，在分组的通道的维度上进行归一化，使得每个样本的每个分组的均值为 0，方差为 1。这样可以在不同大小的 batch size 下保持稳定性，适用于小 batch size 或者全卷积网络等场景。<br>
+3、为什么分组卷积可以提升准确率？即然分组卷积可以提升准确率，同时还能降低计算量，分数数量尽量多不行吗？<br>
+分组卷积（Group Convolution）的原理是：将输入和输出的通道分成若干组，每组内的通道只与对应组的卷积核相乘，从而减少参数和计算量。<br>
+分组卷积可以提升准确率的原因是：它可以增加网络的宽度，使得每个通道可以学习更多样的特征，同时也可以增加网络的非线性，使得网络可以拟合更复杂的函数。<br>
+分组卷积的分组数量不是越多越好的，因为如果分组数量过多，会导致每个分组内的通道数过少，从而降低特征的表达能力和多样性。一般来说，分组数量需要根据具体的任务和数据集进行调整，以达到最佳的效果。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[【第2周】卷积神经网络]]></title>
+        <id>https://liuxingguo9349.github.io/oucblog/post/di-2-zhou-juan-ji-shen-jing-wang-luo/</id>
+        <link href="https://liuxingguo9349.github.io/oucblog/post/di-2-zhou-juan-ji-shen-jing-wang-luo/">
+        </link>
+        <updated>2023-07-16T01:20:31.000Z</updated>
+        <content type="html"><![CDATA[<h2 id="卷积神经网络cnn">卷积神经网络（CNN）</h2>
+<p>任务</p>
+<ul>
+<li>如何使用 PyTorch 进行CNN的训练与测试</li>
+<li>展示池化与卷积操作的作用</li>
+</ul>
+<p>深度卷积神经网络中，有如下特性</p>
+<ul>
+<li>很多层: compositionality</li>
+<li>卷积: locality + stationarity of images</li>
+<li>池化: Invariance of object class to translations</li>
+</ul>
+<pre><code># 一个函数，用来计算模型中有多少参数
+def get_n_params(model):
+    np=0
+    for p in list(model.parameters()):
+        np += p.nelement()
+    return np
+
+# 使用GPU训练，可以在菜单 &quot;代码执行工具&quot; -&gt; &quot;更改运行时类型&quot; 里进行设置
+device = torch.device(&quot;cuda:0&quot; if torch.cuda.is_available() else &quot;cpu&quot;)
+</code></pre>
+<h2 id="1-加载数据-mnist">1. 加载数据 （MNIST）</h2>
+<p>PyTorch里包含了 MNIST， CIFAR10 等常用数据集，调用 torchvision.datasets 即可把这些数据由远程下载到本地，下面给出MNIST的使用方法：<br>
+torchvision.datasets.MNIST(root, train=True, transform=None, target_transform=None, download=False)</p>
+<ul>
+<li>root 为数据集下载到本地后的根目录，包括 training.pt 和 test.pt 文件</li>
+<li>train，如果设置为True，从training.pt创建数据集，否则从test.pt创建。</li>
+<li>download，如果设置为True, 从互联网下载数据并放到root文件夹下</li>
+<li>transform, 一种函数或变换，输入PIL图片，返回变换之后的数据。</li>
+<li>target_transform 一种函数或变换，输入目标，进行变换。<br>
+另外值得注意的是，DataLoader是一个比较重要的类，提供的常用操作有：batch_size(每个batch的大小), shuffle(是否进行随机打乱顺序的操作), num_workers(加载数据的时候使用几个子进程)</li>
+</ul>
+<pre><code>input_size  = 28*28   # MNIST上的图像尺寸是 28x28
+output_size = 10      # 类别为 0 到 9 的数字，因此为十类
+
+train_loader = torch.utils.data.DataLoader(
+    datasets.MNIST('./data', train=True, download=True,
+        transform=transforms.Compose(
+            [transforms.ToTensor(),
+             transforms.Normalize((0.1307,), (0.3081,))])),
+    batch_size=64, shuffle=True)
+
+test_loader = torch.utils.data.DataLoader(
+    datasets.MNIST('./data', train=False, transform=transforms.Compose([
+             transforms.ToTensor(),
+             transforms.Normalize((0.1307,), (0.3081,))])),
+    batch_size=1000, shuffle=True)
+</code></pre>
+<p><img src="https://liuxingguo9349.github.io/oucblog/post-images/1689488007120.png" alt="" loading="lazy"><br>
+显示数据集中的部分图像<br>
+<img src="https://liuxingguo9349.github.io/oucblog/post-images/1689488173034.png" alt="" loading="lazy"></p>
+<pre><code>plt.figure(figsize=(8, 5))
+for i in range(20):
+    plt.subplot(4, 5, i + 1)
+    image, _ = train_loader.dataset.__getitem__(i)
+    plt.imshow(image.squeeze().numpy(),'gray')
+    plt.axis('off');
+</code></pre>
+<h2 id="2-创建网络">2. 创建网络</h2>
+<p>定义网络时，需要继承nn.Module，并实现它的forward方法，把网络中具有可学习参数的层放在构造函数__init__中。<br>
+只要在nn.Module的子类中定义了forward函数，backward函数就会自动被实现(利用autograd)。</p>
+<pre><code>class FC2Layer(nn.Module):
+    def __init__(self, input_size, n_hidden, output_size):
+        # nn.Module子类的函数必须在构造函数中执行父类的构造函数
+        # 下式等价于nn.Module.__init__(self)
+        super(FC2Layer, self).__init__()
+        self.input_size = input_size
+        # 这里直接用 Sequential 就定义了网络，注意要和下面 CNN 的代码区分开
+        self.network = nn.Sequential(
+            nn.Linear(input_size, n_hidden),
+            nn.ReLU(),
+            nn.Linear(n_hidden, n_hidden),
+            nn.ReLU(),
+            nn.Linear(n_hidden, output_size),
+            nn.LogSoftmax(dim=1)
+        )
+    def forward(self, x):
+        # view一般出现在model类的forward函数中，用于改变输入或输出的形状
+        # x.view(-1, self.input_size) 的意思是多维的数据展成二维
+        # 代码指定二维数据的列数为 input_size=784，行数 -1 表示我们不想算，电脑会自己计算对应的数字
+        # 在 DataLoader 部分，我们可以看到 batch_size 是64，所以得到 x 的行数是64
+        # 大家可以加一行代码：print(x.cpu().numpy().shape)
+        # 训练过程中，就会看到 (64, 784) 的输出，和我们的预期是一致的
+
+        # forward 函数的作用是，指定网络的运行过程，这个全连接网络可能看不啥意义，
+        # 下面的CNN网络可以看出 forward 的作用。
+        x = x.view(-1, self.input_size)
+        return self.network(x)
+
+class CNN(nn.Module):
+    def __init__(self, input_size, n_feature, output_size):
+        # 执行父类的构造函数，所有的网络都要这么写
+        super(CNN, self).__init__()
+        # 下面是网络里典型结构的一些定义，一般就是卷积和全连接
+        # 池化、ReLU一类的不用在这里定义
+        self.n_feature = n_feature
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=n_feature, kernel_size=5)
+        self.conv2 = nn.Conv2d(n_feature, n_feature, kernel_size=5)
+        self.fc1 = nn.Linear(n_feature*4*4, 50)
+        self.fc2 = nn.Linear(50, 10)
+
+    # 下面的 forward 函数，定义了网络的结构，按照一定顺序，把上面构建的一些结构组织起来
+    # 意思就是，conv1, conv2 等等的，可以多次重用
+    def forward(self, x, verbose=False):
+        x = self.conv1(x)
+        x = F.relu(x)
+        x = F.max_pool2d(x, kernel_size=2)
+        x = self.conv2(x)
+        x = F.relu(x)
+        x = F.max_pool2d(x, kernel_size=2)
+        x = x.view(-1, self.n_feature*4*4)
+        x = self.fc1(x)
+        x = F.relu(x)
+        x = self.fc2(x)
+        x = F.log_softmax(x, dim=1)
+        return x
+</code></pre>
+<p>定义训练和测试函数</p>
+<pre><code># 训练函数
+def train(model):
+    model.train()
+    # 主里从train_loader里，64个样本一个batch为单位提取样本进行训练
+    for batch_idx, (data, target) in enumerate(train_loader):
+        # 把数据送到GPU中
+        data, target = data.to(device), target.to(device)
+
+        optimizer.zero_grad()
+        output = model(data)
+        loss = F.nll_loss(output, target)
+        loss.backward()
+        optimizer.step()
+        if batch_idx % 100 == 0:
+            print('Train: [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+                batch_idx * len(data), len(train_loader.dataset),
+                1.   * batch_idx / len(train_loader), loss.item()))
+
+
+def test(model):
+    model.eval()
+    test_loss = 0
+    correct = 0
+    for data, target in test_loader:
+        # 把数据送到GPU中
+        data, target = data.to(device), target.to(device)
+        # 把数据送入模型，得到预测结果
+        output = model(data)
+        # 计算本次batch的损失，并加到 test_loss 中
+        test_loss += F.nll_loss(output, target, reduction='sum').item()
+        # get the index of the max log-probability，最后一层输出10个数，
+        # 值最大的那个即对应着分类结果，然后把分类结果保存在 pred 里
+        pred = output.data.max(1, keepdim=True)[1]
+        # 将 pred 与 target 相比，得到正确预测结果的数量，并加到 correct 中
+        # 这里需要注意一下 view_as ，意思是把 target 变成维度和 pred 一样的意思
+        correct += pred.eq(target.data.view_as(pred)).cpu().sum().item()
+
+    test_loss /= len(test_loader.dataset)
+    accuracy = 100. * correct / len(test_loader.dataset)
+    print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+        test_loss, correct, len(test_loader.dataset),
+        accuracy))
+</code></pre>
+<h2 id="3-在小型全连接网络上训练fully-connected-network">3. 在小型全连接网络上训练（Fully-connected network）</h2>
+<pre><code>n_hidden = 8 # number of hidden units
+
+model_fnn = FC2Layer(input_size, n_hidden, output_size)
+model_fnn.to(device)
+optimizer = optim.SGD(model_fnn.parameters(), lr=0.01, momentum=0.5)
+print('Number of parameters: {}'.format(get_n_params(model_fnn)))
+
+train(model_fnn)
+test(model_fnn)
+</code></pre>
+<pre><code>Number of parameters: 6442
+Train: [0/60000 (0%)]	Loss: 2.318534
+Train: [6400/60000 (11%)]	Loss: 1.955423
+Train: [12800/60000 (21%)]	Loss: 1.438875
+Train: [19200/60000 (32%)]	Loss: 0.728443
+Train: [25600/60000 (43%)]	Loss: 0.599893
+Train: [32000/60000 (53%)]	Loss: 0.629695
+Train: [38400/60000 (64%)]	Loss: 0.627684
+Train: [44800/60000 (75%)]	Loss: 0.735600
+Train: [51200/60000 (85%)]	Loss: 0.375173
+Train: [57600/60000 (96%)]	Loss: 0.389437
+
+Test set: Average loss: 0.4584, Accuracy: 8638/10000 (86%)
+</code></pre>
+<h2 id="3-在卷积神经网络上训练">3. 在卷积神经网络上训练</h2>
+<p>需要注意的是，上在定义的CNN和全连接网络，拥有相同数量的模型参数</p>
+<pre><code># Training settings
+n_features = 6 # number of feature maps
+
+model_cnn = CNN(input_size, n_features, output_size)
+model_cnn.to(device)
+optimizer = optim.SGD(model_cnn.parameters(), lr=0.01, momentum=0.5)
+print('Number of parameters: {}'.format(get_n_params(model_cnn)))
+
+train(model_cnn)
+test(model_cnn)
+</code></pre>
+<pre><code>Number of parameters: 6422
+Train: [0/60000 (0%)]	Loss: 2.298037
+Train: [6400/60000 (11%)]	Loss: 1.934684
+Train: [12800/60000 (21%)]	Loss: 0.692961
+Train: [19200/60000 (32%)]	Loss: 0.593910
+Train: [25600/60000 (43%)]	Loss: 0.504916
+Train: [32000/60000 (53%)]	Loss: 0.262568
+Train: [38400/60000 (64%)]	Loss: 0.345097
+Train: [44800/60000 (75%)]	Loss: 0.140525
+Train: [51200/60000 (85%)]	Loss: 0.190530
+Train: [57600/60000 (96%)]	Loss: 0.121602
+
+Test set: Average loss: 0.1706, Accuracy: 9488/10000 (95%)
+</code></pre>
+<p>通过上面的测试结果，可以发现，含有相同参数的 CNN 效果要明显优于 简单的全连接网络，是因为 CNN 能够更好的挖掘图像中的信息，主要通过两个手段：</p>
+<ul>
+<li>卷积：Locality and stationarity in images</li>
+<li>池化：Builds in some translation invariance</li>
+</ul>
+<h2 id="5-打乱像素顺序再次在两个网络上训练与测试">5. 打乱像素顺序再次在两个网络上训练与测试</h2>
+<p>考虑到CNN在卷积与池化上的优良特性，如果我们把图像中的像素打乱顺序，这样 卷积 和 池化 就难以发挥作用了，为了验证这个想法，我们把图像中的像素打乱顺序再试试。<br>
+首先下面代码展示随机打乱像素顺序后，图像的形态：</p>
+<pre><code># 这里解释一下 torch.randperm 函数，给定参数n，返回一个从0到n-1的随机整数排列
+perm = torch.randperm(784)
+plt.figure(figsize=(8, 4))
+for i in range(10):
+    image, _ = train_loader.dataset.__getitem__(i)
+    # permute pixels
+    image_perm = image.view(-1, 28*28).clone()
+    image_perm = image_perm[:, perm]
+    image_perm = image_perm.view(-1, 1, 28, 28)
+    plt.subplot(4, 5, i + 1)
+    plt.imshow(image.squeeze().numpy(), 'gray')
+    plt.axis('off')
+    plt.subplot(4, 5, i + 11)
+    plt.imshow(image_perm.squeeze().numpy(), 'gray')
+    plt.axis('off')
+</code></pre>
+<p><img src="https://liuxingguo9349.github.io/oucblog/post-images/1689488544742.png" alt="" loading="lazy"><br>
+重新定义训练与测试函数，我们写了两个函数 train_perm 和 test_perm，分别对应着加入像素打乱顺序的训练函数与测试函数。</p>
+<p>与之前的训练与测试函数基本上完全相同，只是对 data 加入了打乱顺序操作。</p>
+<pre><code># 对每个 batch 里的数据，打乱像素顺序的函数
+def perm_pixel(data, perm):
+    # 转化为二维矩阵
+    data_new = data.view(-1, 28*28)
+    # 打乱像素顺序
+    data_new = data_new[:, perm]
+    # 恢复为原来4维的 tensor
+    data_new = data_new.view(-1, 1, 28, 28)
+    return data_new
+
+# 训练函数
+def train_perm(model, perm):
+    model.train()
+    for batch_idx, (data, target) in enumerate(train_loader):
+        data, target = data.to(device), target.to(device)
+        # 像素打乱顺序
+        data = perm_pixel(data, perm)
+
+        optimizer.zero_grad()
+        output = model(data)
+        loss = F.nll_loss(output, target)
+        loss.backward()
+        optimizer.step()
+        if batch_idx % 100 == 0:
+            print('Train: [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+                batch_idx * len(data), len(train_loader.dataset),
+                1.   * batch_idx / len(train_loader), loss.item()))
+
+# 测试函数
+def test_perm(model, perm):
+    model.eval()
+    test_loss = 0
+    correct = 0
+    for data, target in test_loader:
+        data, target = data.to(device), target.to(device)
+
+        # 像素打乱顺序
+        data = perm_pixel(data, perm)
+
+        output = model(data)
+        test_loss += F.nll_loss(output, target, reduction='sum').item()
+        pred = output.data.max(1, keepdim=True)[1]
+        correct += pred.eq(target.data.view_as(pred)).cpu().sum().item()
+
+    test_loss /= len(test_loader.dataset)
+    accuracy = 100. * correct / len(test_loader.dataset)
+    print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+        test_loss, correct, len(test_loader.dataset),
+        accuracy))
+</code></pre>
+<p>在全连接网络上训练与测试：</p>
+<pre><code>perm = torch.randperm(784)
+n_hidden = 8 # number of hidden units
+
+model_fnn = FC2Layer(input_size, n_hidden, output_size)
+model_fnn.to(device)
+optimizer = optim.SGD(model_fnn.parameters(), lr=0.01, momentum=0.5)
+print('Number of parameters: {}'.format(get_n_params(model_fnn)))
+
+train_perm(model_fnn, perm)
+test_perm(model_fnn, perm)
+</code></pre>
+<pre><code>Number of parameters: 6442
+Train: [0/60000 (0%)]	Loss: 2.299548
+Train: [6400/60000 (11%)]	Loss: 1.867092
+Train: [12800/60000 (21%)]	Loss: 1.380109
+Train: [19200/60000 (32%)]	Loss: 1.008134
+Train: [25600/60000 (43%)]	Loss: 0.562562
+Train: [32000/60000 (53%)]	Loss: 0.462806
+Train: [38400/60000 (64%)]	Loss: 0.474230
+Train: [44800/60000 (75%)]	Loss: 0.595156
+Train: [51200/60000 (85%)]	Loss: 0.350517
+Train: [57600/60000 (96%)]	Loss: 0.473658
+
+Test set: Average loss: 0.3876, Accuracy: 8872/10000 (89%)
+</code></pre>
+<p>在卷积神经网络上训练与测试：</p>
+<pre><code>perm = torch.randperm(784)
+n_features = 6 # number of feature maps
+
+model_cnn = CNN(input_size, n_features, output_size)
+model_cnn.to(device)
+optimizer = optim.SGD(model_cnn.parameters(), lr=0.01, momentum=0.5)
+print('Number of parameters: {}'.format(get_n_params(model_cnn)))
+
+train_perm(model_cnn, perm)
+test_perm(model_cnn, perm)
+</code></pre>
+<pre><code>Number of parameters: 6422
+Train: [0/60000 (0%)]	Loss: 2.309665
+Train: [6400/60000 (11%)]	Loss: 2.289345
+Train: [12800/60000 (21%)]	Loss: 2.235667
+Train: [19200/60000 (32%)]	Loss: 2.065696
+Train: [25600/60000 (43%)]	Loss: 1.729816
+Train: [32000/60000 (53%)]	Loss: 1.292036
+Train: [38400/60000 (64%)]	Loss: 1.126578
+Train: [44800/60000 (75%)]	Loss: 1.071353
+Train: [51200/60000 (85%)]	Loss: 0.879011
+Train: [57600/60000 (96%)]	Loss: 0.915721
+
+Test set: Average loss: 0.6583, Accuracy: 7975/10000 (80%)
+</code></pre>
+<p>从打乱像素顺序的实验结果来看，全连接网络的性能基本上没有发生变化，但是 卷积神经网络的性能明显下降。<br>
+这是因为对于卷积神经网络，会利用像素的局部关系，但是打乱顺序以后，这些像素间的关系将无法得到利用。</p>
+<h2 id="6-totchvision">6. totchvision</h2>
+<p>PyTorch 创建了一个叫做 totchvision 的包，该包含有支持加载类似Imagenet，CIFAR10，MNIST等公共数据集的数据加载模块 torchvision.datasets 和支持加载图像数据数据转换模块 torch.utils.data.DataLoader。<br>
+下面将使用CIFAR10数据集，它包含十个类别：‘airplane’, ‘automobile’, ‘bird’, ‘cat’, ‘deer’, ‘dog’, ‘frog’, ‘horse’, ‘ship’, ‘truck’。CIFAR-10 中的图像尺寸为3x32x32，也就是RGB的3层颜色通道，每层通道内的尺寸为32*32。<br>
+<img src="https://liuxingguo9349.github.io/oucblog/post-images/1689574384594.png" alt="" loading="lazy"></p>
+<pre><code># 使用GPU训练，可以在菜单 &quot;代码执行工具&quot; -&gt; &quot;更改运行时类型&quot; 里进行设置
+device = torch.device(&quot;cuda:0&quot; if torch.cuda.is_available() else &quot;cpu&quot;)
+
+transform = transforms.Compose(
+    [transforms.ToTensor(),
+     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+
+# 注意下面代码中：训练的 shuffle 是 True，测试的 shuffle 是 false
+# 训练时可以打乱顺序增加多样性，测试是没有必要
+trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
+                                        download=True, transform=transform)
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=64,
+                                          shuffle=True, num_workers=2)
+
+testset = torchvision.datasets.CIFAR10(root='./data', train=False,
+                                       download=True, transform=transform)
+testloader = torch.utils.data.DataLoader(testset, batch_size=8,
+                                         shuffle=False, num_workers=2)
+
+classes = ('plane', 'car', 'bird', 'cat',
+           'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+</code></pre>
+<figure data-type="image" tabindex="1"><img src="https://liuxingguo9349.github.io/oucblog/post-images/1689574514617.png" alt="" loading="lazy"></figure>
+<pre><code>def imshow(img):
+    plt.figure(figsize=(8,8))
+    img = img / 2 + 0.5     # 转换到 [0,1] 之间
+    npimg = img.numpy()
+    plt.imshow(np.transpose(npimg, (1, 2, 0)))
+    plt.show()
+
+# 得到一组图像
+images, labels = next(iter(trainloader))  # 注意将iter(trainloader)放到next里面
+# 展示图像
+imshow(torchvision.utils.make_grid(images))
+# 展示第一行图像的标签
+for j in range(8):
+    print(classes[labels[j]])
+</code></pre>
+<p><img src="https://liuxingguo9349.github.io/oucblog/post-images/1689575344230.png" alt="" loading="lazy"><br>
+truck<br>
+truck<br>
+dog<br>
+truck<br>
+dog<br>
+horse<br>
+frog<br>
+bird<br>
+<em>接下来定义网络，损失函数和优化器：</em></p>
+<pre><code>class Net(nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()
+        self.conv1 = nn.Conv2d(3, 6, 5)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.conv2 = nn.Conv2d(6, 16, 5)
+        self.fc1 = nn.Linear(16 * 5 * 5, 120)
+        self.fc2 = nn.Linear(120, 84)
+        self.fc3 = nn.Linear(84, 10)
+
+    def forward(self, x):
+        x = self.pool(F.relu(self.conv1(x)))
+        x = self.pool(F.relu(self.conv2(x)))
+        x = x.view(-1, 16 * 5 * 5)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+        return x
+
+# 网络放到GPU上
+net = Net().to(device)
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(net.parameters(), lr=0.001)
+</code></pre>
+<p>训练网络：</p>
+<pre><code>for epoch in range(10):  # 重复多轮训练
+    for i, (inputs, labels) in enumerate(trainloader):
+        inputs = inputs.to(device)
+        labels = labels.to(device)
+        # 优化器梯度归零
+        optimizer.zero_grad()
+        # 正向传播 +　反向传播 + 优化 
+        outputs = net(inputs)
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
+        # 输出统计信息
+        if i % 100 == 0:   
+            print('Epoch: %d Minibatch: %5d loss: %.3f' %(epoch + 1, i + 1, loss.item()))
+
+print('Finished Training')
+</code></pre>
+<p>从测试集中取出8张图片：</p>
+<pre><code># 得到一组图像
+images, labels = iter(testloader).next()
+# 展示图像
+imshow(torchvision.utils.make_grid(images))
+# 展示图像的标签
+for j in range(8):
+    print(classes[labels[j]])
+</code></pre>
+<p><img src="https://liuxingguo9349.github.io/oucblog/post-images/1689575724392.png" alt="" loading="lazy"><br>
+观察CNN识别情况</p>
+<pre><code>outputs = net(images.to(device))
+_, predicted = torch.max(outputs, 1)
+
+# 展示预测的结果
+for j in range(8):
+    print(classes[predicted[j]])
+</code></pre>
+<p>cat<br>
+ship<br>
+plane<br>
+plane<br>
+deer<br>
+frog<br>
+car<br>
+frog<br>
+再看看识别率</p>
+<pre><code>correct = 0
+total = 0
+
+for data in testloader:
+    images, labels = data
+    images, labels = images.to(device), labels.to(device)
+    outputs = net(images)
+    _, predicted = torch.max(outputs.data, 1)
+    total += labels.size(0)
+    correct += (predicted == labels).sum().item()
+
+print('Accuracy of the network on the 10000 test images: %d %%' % (
+    100 * correct / total))
+</code></pre>
+<p>Accuracy of the network on the 10000 test images: 63 %</p>
+<h2 id="1-dataloader-里面-shuffle-取不同值有什么区别">1、dataloader 里面 shuffle 取不同值有什么区别？</h2>
+<p>dataloader里面shuffle的作用是在每个epoch开始时，随机打乱数据集的顺序，这样可以避免模型过拟合或者陷入局部最优。如果shuffle取不同值，那么就会影响dataloader返回的样本顺序，从而影响模型的训练效果。一般来说，训练集的shuffle应该设为True，而验证集或测试集的shuffle可以设为False。如果想要在多个epoch或多次iteration中保持固定的样本顺序，可以使用SequentialSampler来替代默认的RandomSampler。</p>
+<h2 id="2-transform-里取了不同值这个有什么区别">2、transform 里，取了不同值，这个有什么区别？</h2>
+<p>transform是pytorch中的图像预处理包，它可以对图像数据进行不同的变换，比如裁剪、翻转、缩放、归一化等。transform里面有很多函数，每个函数都有不同的作用和参数。</p>
+<h2 id="3-epoch-和-batch-的区别">3、epoch 和 batch 的区别？</h2>
+<p>epoch指的是整个训练数据集通过神经网络的次数，也就是一次完整的训练过程。batch指的是每次更新模型参数之前，使用的样本数量。batch可以分为三种类型，分别是batch gradient descent, stochastic gradient descent和mini-batch gradient descent。batch gradient descent使用所有的训练数据来计算梯度和更新参数，但是这样会很耗时和低效。stochastic gradient descent使用单个样本来计算梯度和更新参数，但是这样会导致梯度方向不稳定，难以收敛到最优解。mini-batch gradient descent使用一组样本（小于整个数据集）来计算梯度和更新参数，这样可以平衡计算效率和收敛速度。因此，epoch和batch的区别在于，epoch是训练过程中的一个循环单位，而batch是训练过程中的一个迭代单位。</p>
+<h2 id="4-1x1的卷积和-fc-有什么区别主要起什么作用">4、1x1的卷积和 FC 有什么区别？主要起什么作用？</h2>
+<p>1x1的卷积和FC（全连接层）有一些相似之处，也有一些区别。相似之处在于，1x1的卷积可以看作是对每个输入通道进行一个线性变换，然后将不同通道的结果相加，得到一个输出通道。这个过程和FC层的矩阵乘法和偏置相加是等价的。区别在于，FC层要求输入有一个固定的大小，而卷积层可以接受任意大小的输入。因此，1x1的卷积可以替代FC层，实现更灵活的网络结构。1x1的卷积主要起到两个作用：一是降维，减少特征图的数量，从而减少参数和计算量；二是增维，增加特征图的数量，从而增强网络的表达能力。</p>
+<h2 id="5-residual-leanring-为什么能够提升准确率">5、residual leanring 为什么能够提升准确率？</h2>
+<p>residual learning能够提升准确率的原因有以下几点：一是它可以增加网络的深度，从而增强网络的表达能力；二是它可以实现跨层的信息传递，从而加速网络的收敛；三是它可以保留输入的主要信息，从而减少信息的丢失。residual learning已经被广泛应用于图像识别、目标检测、场景识别等领域，取得了很好的效果。</p>
+<h2 id="6-代码练习二里网络和1989年-lecun-提出的-lenet-有什么区别">6、代码练习二里，网络和1989年 Lecun 提出的 LeNet 有什么区别？</h2>
+<p>代码练习二里的网络和1989年Lecun提出的LeNet有以下几个区别：一是网络使用了ReLU作为激活函数，而LeNet使用了Sigmoid或者Tanh作为激活函数；二是网络使用了MaxPool作为池化层，而LeNet使用了AveragePool作为池化层；三是网络的输入通道数是3，而LeNet的输入通道数是1；四是上述网络的卷积核大小是5x5，而LeNet的卷积核大小是3x3或者5x5；五是上述网络的全连接层有三层，而LeNet的全连接层有两层。</p>
+<h2 id="7-代码练习二里卷积以后feature-map-尺寸会变小如何应用-residual-learning">7、代码练习二里，卷积以后feature map 尺寸会变小，如何应用 Residual Learning?</h2>
+<p>卷积以后feature map尺寸会变小，这会导致输入和输出的尺寸不匹配，从而无法应用residual learning。为了解决这个问题，有两种常用的方法：一是在shortcut connection上使用一个1x1的卷积层，来调整输入的通道数和尺寸，使之与输出相同；二是在shortcut connection上使用一个下采样层（如MaxPool或AvgPool），来调整输入的尺寸，使之与输出相同。这两种方法都可以保证输入和输出能够相加，从而实现residual learning。</p>
+<h2 id="8-有什么方法可以进一步提升准确率">8、有什么方法可以进一步提升准确率？</h2>
+<p>一是增加数据量，或者使用数据增强的方法来扩充数据集，这样可以提高模型的泛化能力，避免过拟合；二是归一化或者标准化输入数据，这样可以加速模型的收敛，也可以减少输入特征的尺度差异对模型的影响；三是增加网络的深度或者宽度，这样可以增强网络的表达能力，学习更复杂的特征和模式；四是调整网络的超参数，如学习率、优化器、激活函数、正则化等，这样可以找到最适合模型性能的参数组合；五是使用预训练的模型或者迁移学习的方法，这样可以利用已有的知识来初始化模型或者微调模型。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[【第1周】深度学习基础]]></title>
+        <id>https://liuxingguo9349.github.io/oucblog/post/di-1-zhou-shen-du-xue-xi-ji-chu/</id>
+        <link href="https://liuxingguo9349.github.io/oucblog/post/di-1-zhou-shen-du-xue-xi-ji-chu/">
+        </link>
+        <updated>2023-07-10T12:16:03.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="1-pytorch基础"><strong>1、PyTorch基础</strong></h1>
+<p>PyTorch是一个python库，它主要提供了两个高级功能：</p>
+<ul>
+<li>GPU加速的张量计算</li>
+<li>构建在反向自动求导系统上的深度神经网络</li>
+</ul>
+<h2 id="1-定义数据">1. 定义数据</h2>
+<p>一般定义数据使用torch.Tensor ， tensor的意思是张量，是数字各种形式的总称</p>
+<pre><code class="language-python">import torch # 首先引入
+x = torch.tensor() # num可以是数、向量、矩阵等张量
+</code></pre>
+<h2 id="2-定义操作">2. 定义操作</h2>
+<p>凡是用Tensor进行各种运算的，都是Function<br>
+最终，还是需要用Tensor来进行计算的，计算无非是<br>
+基本运算，加减乘除，求幂求余<br>
+布尔运算，大于小于，最大最小<br>
+线性运算，矩阵乘法，求模，求行列式<br>
+基本运算包括： abs/sqrt/div/exp/fmod/pow ，及一些三角函数 cos/ sin/ asin/ atan2/ cosh，及 ceil/round/floor/trunc 等具体在使用的时候可以百度一下<br>
+布尔运算包括： gt/lt/ge/le/eq/ne，topk, sort, max/min<br>
+线性计算包括： trace, diag, mm/bmm，t，dot/cross，inverse，svd 等</p>
+<pre><code class="language-python"># 这里注意运算必须为同类型
+# Scalar product
+m @ v
+</code></pre>
+<p>原代码提供v不为浮点型，所以与m运算时会出错<br>
+<img src="https://liuxingguo9349.github.io/oucblog/post-images/1688993308141.png" alt="" loading="lazy"></p>
+<h1 id="2-螺旋数据分类"><strong>2、螺旋数据分类</strong></h1>
+<pre><code class="language-python"># 引入plot_lib.py
+!wget https://raw.githubusercontent.com/Atcold/pytorch-Deep-Learning/master/res/plot_lib.py
+</code></pre>
+<figure data-type="image" tabindex="1"><img src="https://liuxingguo9349.github.io/oucblog/post-images/1689041071120.png" alt="" loading="lazy"></figure>
+<pre><code class="language-python">import random
+import torch
+from torch import nn, optim
+import math
+from IPython import display
+from plot_lib import plot_data, plot_model, set_default
+
+# 因为colab是支持GPU的，torch 将在 GPU 上运行
+device = torch.device(&quot;cuda:0&quot; if torch.cuda.is_available() else &quot;cpu&quot;)
+print('device: ', device)
+
+# 初始化随机数种子。神经网络的参数都是随机初始化的，
+# 不同的初始化参数往往会导致不同的结果，当得到比较好的结果时我们通常希望这个结果是可以复现的，
+# 因此，在pytorch中，通过设置随机数种子也可以达到这个目的
+seed = 12345
+random.seed(seed)
+torch.manual_seed(seed)
+
+N = 1000  # 每类样本的数量
+D = 2  # 每个样本的特征维度
+C = 3  # 样本的类别
+H = 100  # 神经网络里隐层单元的数量
+# 输出device:  cpu
+</code></pre>
+<pre><code class="language-python">X = torch.zeros(N * C, D).to(device)
+Y = torch.zeros(N * C, dtype=torch.long).to(device)
+for c in range(C):
+    index = 0
+    t = torch.linspace(0, 1, N) # 在[0，1]间均匀的取10000个数，赋给t
+    # 下面的代码不用理解太多，总之是根据公式计算出三类样本（可以构成螺旋形）
+    # torch.randn(N) 是得到 N 个均值为0，方差为 1 的一组随机数，注意要和 rand 区分开
+    inner_var = torch.linspace( (2*math.pi/C)*c, (2*math.pi/C)*(2+c), N) + torch.randn(N) * 0.2
+
+    # 每个样本的(x,y)坐标都保存在 X 里
+    # Y 里存储的是样本的类别，分别为 [0, 1, 2]
+    for ix in range(N * c, N * (c + 1)):
+        X[ix] = t[index] * torch.FloatTensor((math.sin(inner_var[index]), math.cos(inner_var[index])))
+        Y[ix] = c
+        index += 1
+
+print(&quot;Shapes:&quot;)
+print(&quot;X:&quot;, X.size())
+print(&quot;Y:&quot;, Y.size())
+# 输出
+Shapes:
+X: torch.Size([3000, 2])
+Y: torch.Size([3000])
+</code></pre>
+<pre><code class="language-python"># visualise the data
+plot_data(X, Y)
+</code></pre>
+<figure data-type="image" tabindex="2"><img src="https://liuxingguo9349.github.io/oucblog/post-images/1689041514555.png" alt="" loading="lazy"></figure>
+<h1 id="3-问题总结"><strong>3、问题总结</strong></h1>
+<h2 id="1-alexnet有哪些特点为什么可以比lenet取得更好的性能">1. AlexNet有哪些特点？为什么可以比LeNet取得更好的性能？</h2>
+<p>AlexNet是一种卷积神经网络（CNN）的架构，由Alex Krizhevsky与Ilya Sutskever和Geoffrey Hinton合作设计，后者是Krizhevsky的博士导师。AlexNet在2012年9月30日的ImageNet大规模视觉识别挑战赛中获胜，该网络的Top-5错误率为15.3%，比第二名低了10.8个百分点。原论文的主要结论是，模型的深度对于提高性能至关重要，但由于在训练过程中使用了图形处理器（GPU），使得计算具有可行性。<br>
+AlexNet的特点有以下几点：</p>
+<ul>
+<li>AlexNet包含八层，前五层是卷积层，后三层是全连接层。网络除了最后一层外，分为两个副本，每个副本运行在一个GPU上。</li>
+<li>AlexNet使用了非饱和的ReLU激活函数，显示出比tanh和sigmoid更好的训练性能。</li>
+<li>AlexNet使用了局部响应归一化（LRN）层，以增强模型的泛化能力。</li>
+<li>AlexNet使用了重叠的最大池化层，以减少特征图的大小，并提高平移不变性。</li>
+<li>AlexNet使用了数据增强技术，如随机裁剪、水平翻转、颜色变换等，以扩大训练集并防止过拟合。</li>
+<li>AlexNet使用了丢弃（dropout）技术，在全连接层中随机丢弃一些神经元，以减少参数数量并防止过拟合。</li>
+<li></li>
+</ul>
+<p>AlexNet之所以可以比LeNet取得更好的性能，主要有以下几个原因：</p>
+<ul>
+<li>AlexNet比LeNet更深更宽，有更多的参数和特征表示能力。</li>
+<li>AlexNet使用了GPU加速计算，使得训练更快，并可以处理更大的图像输入。</li>
+<li>AlexNet使用了ImageNet数据集，该数据集包含了1000个类别和1400万张图像，比LeNet使用的MNIST数据集更复杂和多样化。</li>
+<li>AlexNet使用了一些新颖的技术，如ReLU、LRN、dropout等，提高了模型的训练效率和泛化能力。</li>
+</ul>
+<h2 id="2-激活函数有哪些作用">2. 激活函数有哪些作用？</h2>
+<p>激活函数的作用是给神经网络的输出加上非线性因素，使得神经网络可以拟合非线性的数据。激活函数可以增强神经网络的表达能力和学习能力，解决线性模型所不能解决的问题。激活函数还可以对数据进行归一化，将输入数据映射到某个范围内，防止数据过大导致的溢出风险。<br>
+常见的激活函数有以下几种：</p>
+<ul>
+<li>Sigmoid函数：将实数映射到 (0,1) 的区间，可以用来做二分类。Sigmoid函数具有梯度平滑、输出归一化、可微分等优点，但也存在梯度消失、计算成本高、不以零为中心等缺点。</li>
+<li>Tanh函数：将实数映射到 (-1,1) 的区间，是Sigmoid函数的放大和平移版本。Tanh函数比Sigmoid函数更接近零中心，但也会有梯度消失的问题。</li>
+<li>ReLU函数：将负数置为零，保留正数不变。ReLU函数可以改善梯度消失问题，加速梯度下降的收敛速度，计算简单高效。但ReLU函数也有不可导、死亡神经元、输出不归一化等缺点。</li>
+<li>Leaky ReLU函数：在ReLU函数的基础上，给负数部分加上一个很小的斜率，避免了死亡神经元的问题，但仍然存在不可导、输出不归一化等缺点。</li>
+<li>Softmax函数：将一组实数映射到 (0,1) 的区间，并且使得它们的和为1。Softmax函数可以用来做多分类，它可以输出每个类别的概率分布。</li>
+</ul>
+<h2 id="3-梯度消失现象是什么">3. 梯度消失现象是什么？</h2>
+<p>梯度消失现象是指在深度神经网络中，靠近输入层的参数的梯度因为连乘了很多小于1的数而变得非常小，接近于0，导致这些参数无法得到有效的更新。梯度消失会影响神经网络的训练效果和收敛速度，使得网络难以学习到复杂的特征。<br>
+梯度消失的主要原因有以下几个：</p>
+<ul>
+<li>网络层数过深，导致反向传播时梯度以指数形式衰减。</li>
+<li>激活函数的选择不当，例如sigmoid函数和tanh函数，在饱和区的导数接近于0，使得梯度无法有效传递。</li>
+<li>参数初始化不合理，例如权重过小或过大，导致激活值落入饱和区或者方差过大。</li>
+</ul>
+<p>梯度消失的一些常见的解决方法有以下几个：</p>
+<ul>
+<li>选择合适的激活函数，例如ReLU函数和其变种，它们在正区间的导数为常数，可以避免梯度消失。</li>
+<li>使用批量归一化（batch normalization）技术，可以规范化每一层的输出，防止数据分布的偏移和变化。</li>
+<li>使用残差连接（residual connection）技术，可以在网络中添加跨层的直接连接，使得梯度可以直接从后面的层传到前面的层。</li>
+<li>使用合理的参数初始化方法，例如Xavier初始化或He初始化，可以根据网络层数和输入输出维度自适应地调整权重的初始值。</li>
+</ul>
+<h2 id="4-神经网络是更宽好还是更深好">4. 神经网络是更宽好还是更深好？</h2>
+<p>神经网络的宽度和深度是两个重要的因素，影响着网络的性能和泛化能力。一般来说，增加宽度或深度都可以提高网络的表达能力和拟合能力，但也会带来一些问题和挑战，比如计算复杂度、过拟合、梯度消失等。因此，神经网络的设计需要根据具体的任务和数据集进行权衡和调整。</p>
+<h2 id="5-为什么要使用softmax">5. 为什么要使用Softmax？</h2>
+<p>Softmax函数是一种激活函数，它可以将一个含任意实数的K维向量“压缩”到另一个K维实向量中，使得每一个元素的范围都在(0,1)之间，并且所有元素的和为1。Softmax函数可以将一个数值向量归一化为一个概率分布向量，且各个概率之和为1。<br>
+Softmax函数的作用是：</p>
+<ul>
+<li>Softmax函数可以用来作为神经网络的最后一层，用于多分类问题的输出。Softmax函数可以预测每个类别的概率，并选择预测值最高的类别作为结果。例如，在手写数字识别问题中，Softmax函数可以输出0-9这10个数字的概率分布，并选择概率最大的数字作为识别结果。</li>
+<li>Softmax函数常常和交叉熵损失函数一起结合使用，作为神经网络的优化目标。交叉熵损失函数可以衡量神经网络输出的概率分布与真实标签的概率分布之间的差异，越小说明越接近。通过反向传播算法，可以根据交叉熵损失函数对神经网络的参数进行更新，使得神经网络的输出更接近真实标签。</li>
+</ul>
+<h2 id="6-sgd-和-adam-哪个更有效">6. SGD 和 Adam 哪个更有效？</h2>
+<p>SGD 和 Adam 都是常用的优化算法，但是它们的适用场景不同。SGD 适用于凸优化问题，而 Adam 适用于非凸优化问题。在训练深度学习模型时，Adam 通常比 SGD 更快地收敛，但是 SGD 可能会在某些情况下更好地泛化。如果数据集很大，那么 Adam 可能是更好的选择，因为它可以更快地收敛。如果数据集很小，则 SGD 可能是更好的选择，因为它可以更好地泛化。</p>
+]]></content>
+    </entry>
+</feed>

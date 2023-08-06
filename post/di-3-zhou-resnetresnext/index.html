@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>【第3周】ResNet+ResNeXt | 刘兴国的博客</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://liuxingguo9349.github.io/oucblog/favicon.ico?v=1691316527300">
+<link rel="stylesheet" href="https://liuxingguo9349.github.io/oucblog/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css" />
+  
+
+  
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="1、论文阅读与视频学习：
+ResNet 阅读论文 Deep Residual Learning for Image Recognition
+这篇论文提出了一种深度残差学习的方法，用于解决深度神经网络的退化问题。退化问题是指随着网络深度的增加..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://liuxingguo9349.github.io/oucblog">
+        <img src="https://liuxingguo9349.github.io/oucblog/images/avatar.png?v=1691316527300" class="site-logo">
+        <h1 class="site-title">刘兴国的博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/oucblog/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/oucblog/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/oucblog/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/oucblog/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/liuxingguo9349" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      以梦为马，不负韶华
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">刘兴国的博客</a> | <a class="rss" href="https://liuxingguo9349.github.io/oucblog/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">【第3周】ResNet+ResNeXt</h2>
+            <div class="post-date">2023-07-30</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="1-论文阅读与视频学习">1、论文阅读与视频学习：</h1>
+<h2 id="resnet-阅读论文-deep-residual-learning-for-image-recognition">ResNet 阅读论文 Deep Residual Learning for Image Recognition</h2>
+<p>这篇论文提出了一种深度残差学习的方法，用于解决深度神经网络的退化问题。退化问题是指随着网络深度的增加，网络的训练误差和测试误差都会增大，而不是过拟合。作者认为这是因为深层网络难以学习到恒等映射，即使理想情况下，增加网络深度不应该降低网络性能。为了解决这个问题，作者引入了残差学习的概念，即让网络学习输入和输出之间的残差函数，而不是直接学习输入到输出的映射。这样可以使得网络更容易拟合恒等映射，从而提高网络性能。作者在多个图像识别任务上验证了残差学习的有效性，包括ImageNet、CIFAR-10、CIFAR-100和COCO数据集。实验结果表明，残差学习可以显著提升深层网络的准确率，并且可以训练出超过1000层的网络。作者还探讨了残差学习的一些变体和扩展，如瓶颈结构、预激活结构和多尺度残差网络等。这篇论文开创了深度残差学习的新领域，并对深度神经网络的设计和优化有重要的启示。</p>
+<p>ResNet是一种深度残差网络，它可以有效地解决深度神经网络中的梯度消失和网络退化的问题。ResNet的核心思想是在网络中添加跨层的残差连接，使得每一层都可以学习到一个残差函数，而不是直接拟合输入和输出的映射关系。这样可以保证网络的信息流动和反向传播，从而提高网络的性能和稳定性。ResNet的一个基本单元是残差块，它由两个或多个卷积层和一个跳跃连接组成。跳跃连接可以是恒等映射或者线性变换，以保证输入和输出的维度一致。</p>
+<p>Pytorch是一个基于Python的深度学习框架，它提供了灵活和高效的数据处理、模型构建、训练和测试等功能。Pytorch中有一个torchvision模块，它包含了常用的图像处理和计算机视觉相关的数据集、模型、变换等工具。其中就有ResNet的预训练模型，可以直接调用或者进行微调。要使用Pytorch搭建ResNet网络，可以参考以下代码：</p>
+<pre><code>import torch
+import torchvision
+
+# 定义超参数
+num_classes = 10 # 分类数
+batch_size = 64 # 批大小
+num_epochs = 20 # 训练轮数
+learning_rate = 0.01 # 学习率
+
+# 加载数据集
+train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, transform=torchvision.transforms.ToTensor(), download=True)
+test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, transform=torchvision.transforms.ToTensor(), download=True)
+train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
+test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=2)
+
+# 加载预训练模型
+model = torchvision.models.resnet18(pretrained=True)
+
+# 修改最后一层的输出维度
+model.fc = torch.nn.Linear(model.fc.in_features, num_classes)
+
+# 移动模型到GPU
+device = torch.device(&quot;cuda:0&quot; if torch.cuda.is_available() else &quot;cpu&quot;)
+model.to(device)
+
+# 定义损失函数和优化器
+criterion = torch.nn.CrossEntropyLoss()
+optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
+
+# 训练模型
+for epoch in range(num_epochs):
+    running_loss = 0.0
+    for i, data in enumerate(train_loader):
+        # 获取输入和标签
+        inputs, labels = data[0].to(device), data[1].to(device)
+        # 清零梯度
+        optimizer.zero_grad()
+        # 前向传播
+        outputs = model(inputs)
+        # 计算损失
+        loss = criterion(outputs, labels)
+        # 反向传播和更新参数
+        loss.backward()
+        optimizer.step()
+        # 打印统计信息
+        running_loss += loss.item()
+        if i % 200 == 199:    # 每200个批次打印一次平均损失
+            print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, running_loss / 200))
+            running_loss = 0.0
+
+print('Finished Training')
+
+# 测试模型
+correct = 0
+total = 0
+with torch.no_grad():
+    for data in test_loader:
+        images, labels = data[0].to(device), data[1].to(device)
+        outputs = model(images)
+        _, predicted = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+
+print('Accuracy of the network on the 10000 test images: %d %%' % (100 * correct / total))
+</code></pre>
+<h2 id="resnext-阅读论文-aggregated-residual-transformations-for-deep-neural-networks">ResNeXt 阅读论文 Aggregated Residual Transformations for Deep Neural Networks</h2>
+<p>ResNeXt是一种深度神经网络，它使用了分组卷积和残差连接来提高模型的性能和效率。分组卷积可以减少参数量和计算量，同时增加特征的多样性。残差连接可以解决梯度消失和网络退化的问题，使得网络可以更深。ResNeXt的创新之处在于，它将分组卷积的每个分支都视为一个残差单元，从而实现了对残差连接的扩展。ResNeXt的结构可以用一个超参数C来控制，C表示每个分组卷积的分支数。ResNeXt在图像分类、目标检测和语义分割等任务上都取得了优异的结果，证明了它的有效性和通用性。</p>
+<p>ResNeXt是一种深度神经网络，它在ResNet的基础上引入了分组卷积的概念，从而提高了模型的性能和效率。ResNeXt的核心思想是将每个残差块中的卷积层分成多个分支，每个分支都是一个小的卷积网络，然后将这些分支的输出相加作为残差块的输出。这样可以减少参数量和计算量，同时增加特征的多样性和表达能力。ResNeXt的结构可以用一个超参数C来控制，C表示每个残差块中的分支数。ResNeXt在图像分类、目标检测和语义分割等任务上都取得了优异的结果，证明了它的有效性和通用性。</p>
+<p>Pytorch是一个基于Python的深度学习框架，它提供了灵活和高效的数据处理、模型构建、训练和测试等功能。Pytorch中有一个torchvision模块，它包含了常用的图像处理和计算机视觉相关的数据集、模型、变换等工具。其中就有ResNeXt的预训练模型，可以直接调用或者进行微调。要使用Pytorch搭建ResNeXt网络，可以参考以下代码：</p>
+<pre><code>import torch
+import torchvision
+
+# 定义超参数
+num_classes = 10 # 分类数
+batch_size = 64 # 批大小
+num_epochs = 20 # 训练轮数
+learning_rate = 0.01 # 学习率
+
+# 加载数据集
+train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, transform=torchvision.transforms.ToTensor(), download=True)
+test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, transform=torchvision.transforms.ToTensor(), download=True)
+train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
+test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=2)
+
+# 加载预训练模型
+model = torchvision.models.resnext50_32x4d(pretrained=True)
+
+# 修改最后一层的输出维度
+model.fc = torch.nn.Linear(model.fc.in_features, num_classes)
+
+# 移动模型到GPU
+device = torch.device(&quot;cuda:0&quot; if torch.cuda.is_available() else &quot;cpu&quot;)
+model.to(device)
+
+# 定义损失函数和优化器
+criterion = torch.nn.CrossEntropyLoss()
+optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
+
+# 训练模型
+for epoch in range(num_epochs):
+    running_loss = 0.0
+    for i, data in enumerate(train_loader):
+        # 获取输入和标签
+        inputs, labels = data[0].to(device), data[1].to(device)
+        # 清零梯度
+        optimizer.zero_grad()
+        # 前向传播
+        outputs = model(inputs)
+        # 计算损失
+        loss = criterion(outputs, labels)
+        # 反向传播和更新参数
+        loss.backward()
+        optimizer.step()
+        # 打印统计信息
+        running_loss += loss.item()
+        if i % 200 == 199:    # 每200个批次打印一次平均损失
+            print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, running_loss / 200))
+            running_loss = 0.0
+
+print('Finished Training')
+
+# 测试模型
+correct = 0
+total = 0
+with torch.no_grad():
+    for data in test_loader:
+        images, labels = data[0].to(device), data[1].to(device)
+        outputs = model(images)
+        _, predicted = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+
+print('Accuracy of the network on the 10000 test images: %d %%' % (100 * correct / total))
+</code></pre>
+<h1 id="2-猫狗大战-经典图像分类题">2、猫狗大战--经典图像分类题</h1>
+<pre><code># 导入需要的库
+import numpy as np
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
+# 定义图片的大小和批次大小
+img_size = (150, 150)
+batch_size = 32
+
+# 创建一个图片数据生成器，用于从文件夹中读取图片并进行预处理
+train_datagen = ImageDataGenerator(
+    rescale=1./255, # 将像素值缩放到0-1之间
+    rotation_range=40, # 随机旋转图片的角度
+    width_shift_range=0.2, # 随机水平移动图片
+    height_shift_range=0.2, # 随机垂直移动图片
+    shear_range=0.2, # 随机剪切图片
+    zoom_range=0.2, # 随机缩放图片
+    horizontal_flip=True, # 随机水平翻转图片
+    fill_mode='nearest' # 填充空白区域的方式
+)
+
+# 创建一个训练数据集，从train文件夹中读取猫狗图片，并按照类别标签分组
+train_dataset = train_datagen.flow_from_directory(
+    'train', # 文件夹路径
+    target_size=img_size, # 图片大小
+    batch_size=batch_size, # 批次大小
+    class_mode='binary' # 类别模式，二分类，1=dog，0=cat
+)
+
+# 创建一个测试数据生成器，用于从文件夹中读取图片并进行预处理，不需要增强数据
+test_datagen = ImageDataGenerator(rescale=1./255)
+
+# 创建一个测试数据集，从test文件夹中读取猫狗图片，并按照类别标签分组
+test_dataset = test_datagen.flow_from_directory(
+    'test', # 文件夹路径
+    target_size=img_size, # 图片大小
+    batch_size=batch_size, # 批次大小
+    class_mode='binary' # 类别模式，二分类，1=dog，0=cat
+)
+
+# 定义一个卷积神经网络模型，用于识别猫狗图片
+model = keras.Sequential([
+    layers.Conv2D(32, 3, activation='relu', input_shape=(150, 150, 3)), # 卷积层，32个过滤器，3x3的核大小，激活函数为relu，输入形状为150x150x3的图片
+    layers.MaxPooling2D(2), # 最大池化层，2x2的窗口大小，用于降低维度和提取特征
+    layers.Conv2D(64, 3, activation='relu'), # 卷积层，64个过滤器，3x3的核大小，激活函数为relu
+    layers.MaxPooling2D(2), # 最大池化层，2x2的窗口大小，用于降低维度和提取特征
+    layers.Conv2D(128, 3, activation='relu'), # 卷积层，128个过滤器，3x3的核大小，激活函数为relu
+    layers.MaxPooling2D(2), # 最大池化层，2x2的窗口大小，用于降低维度和提取特征
+    layers.Flatten(), # 扁平化层，将多维的特征图转换为一维的向量，用于连接全连接层
+    layers.Dense(256, activation='relu'), # 全连接层，256个神经元，激活函数为relu，用于学习特征和分类规则
+    layers.Dropout(0.5), # Dropout层，随机丢弃一半的神经元，用于防止过拟合和增加泛化能力
+    layers.Dense(1, activation='sigmoid') # 全连接层，1个神经元，激活函数为sigmoid，用于输出二分类的概率，1=dog，0=cat
+])
+
+# 编译模型，指定损失函数，优化器和评估指标
+model.compile(
+    loss='binary_crossentropy', # 二分类的交叉熵损失函数，用于衡量预测值和真实值之间的差异
+    optimizer='adam', # Adam优化器，一种自适应的梯度下降算法，用于更新模型的参数
+    metrics=['accuracy'] # 准确率指标，用于衡量模型的表现
+)
+
+# 训练模型，指定训练数据集，验证数据集，训练轮数和每轮的步数
+model.fit(
+    train_dataset, # 训练数据集
+    validation_data=test_dataset, # 验证数据集
+    epochs=20, # 训练轮数
+    steps_per_epoch=len(train_dataset), # 每轮的步数，等于训练数据集的大小除以批次大小
+    validation_steps=len(test_dataset) # 每轮的验证步数，等于验证数据集的大小除以批次大小
+)
+
+# 保存模型
+model.save('cat_dog_model.h5')
+</code></pre>
+<h1 id="3-本周的思考题">3、本周的思考题：</h1>
+<p>1、Residual learning 的基本原理？<br>
+残差学习（Residual Learning）的基本原理是：让权重层学习输入层的残差函数，而不是学习无参考的函数。残差网络（Residual Network，ResNet）是一种具有跳跃连接（skip connections）的网络，跳跃连接可以执行恒等映射（identity mapping），并通过加法将层的输出与输入合并。这样可以使得深度网络更容易训练，也可以提高准确率。<br>
+2、Batch Normailization 的原理，思考 BN、LN、IN 的主要区别。<br>
+Batch Normalization (BN) 的原理是：对每个通道的数据，在一个 batch 的维度上进行归一化，使得每个通道的均值为 0，方差为 1。这样可以加速训练，提高准确率，防止梯度消失或爆炸。<br>
+Layer Normalization (LN) 的原理是：对每个样本的数据，在通道、高、宽的维度上进行归一化，使得每个样本的均值为 0，方差为 1。这样可以减少对 batch size 的依赖，适用于 RNN 等变长输入的模型。<br>
+Instance Normalization (IN) 的原理是：对每个样本的数据，在通道的维度上进行归一化，使得每个样本的每个通道的均值为 0，方差为 1。这样可以增强样本之间的差异，适用于风格迁移等任务。<br>
+Group Normalization (GN) 的原理是：对每个样本的数据，在分组的通道的维度上进行归一化，使得每个样本的每个分组的均值为 0，方差为 1。这样可以在不同大小的 batch size 下保持稳定性，适用于小 batch size 或者全卷积网络等场景。<br>
+3、为什么分组卷积可以提升准确率？即然分组卷积可以提升准确率，同时还能降低计算量，分数数量尽量多不行吗？<br>
+分组卷积（Group Convolution）的原理是：将输入和输出的通道分成若干组，每组内的通道只与对应组的卷积核相乘，从而减少参数和计算量。<br>
+分组卷积可以提升准确率的原因是：它可以增加网络的宽度，使得每个通道可以学习更多样的特征，同时也可以增加网络的非线性，使得网络可以拟合更复杂的函数。<br>
+分组卷积的分组数量不是越多越好的，因为如果分组数量过多，会导致每个分组内的通道数过少，从而降低特征的表达能力和多样性。一般来说，分组数量需要根据具体的任务和数据集进行调整，以达到最佳的效果。</p>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://liuxingguo9349.github.io/oucblog/post/di-2-zhou-juan-ji-shen-jing-wang-luo/">
+                  <h3 class="post-title">
+                    【第2周】卷积神经网络
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+  <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  <script>
+    hljs.initHighlightingOnLoad()
+  </script>
+
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '079cee914f76656b4b21',
+        clientSecret: 'bff979ffe33350b2717332f1f8459c0533f59a96',
+        repo: 'oucblog',
+        owner: 'liuxingguo9349',
+        admin: ['liuxingguo9349'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+
+
+  </body>
+</html>

@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>【第2周】卷积神经网络 | 刘兴国的博客</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://liuxingguo9349.github.io/oucblog/favicon.ico?v=1691316527300">
+<link rel="stylesheet" href="https://liuxingguo9349.github.io/oucblog/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css" />
+  
+
+  
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="卷积神经网络（CNN）
+任务
+
+如何使用 PyTorch 进行CNN的训练与测试
+展示池化与卷积操作的作用
+
+深度卷积神经网络中，有如下特性
+
+很多层: compositionality
+卷积: locality + stationarit..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://liuxingguo9349.github.io/oucblog">
+        <img src="https://liuxingguo9349.github.io/oucblog/images/avatar.png?v=1691316527300" class="site-logo">
+        <h1 class="site-title">刘兴国的博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/oucblog/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/oucblog/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/oucblog/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/oucblog/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/liuxingguo9349" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      以梦为马，不负韶华
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">刘兴国的博客</a> | <a class="rss" href="https://liuxingguo9349.github.io/oucblog/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">【第2周】卷积神经网络</h2>
+            <div class="post-date">2023-07-16</div>
+            
+            <div class="post-content" v-pre>
+              <h2 id="卷积神经网络cnn">卷积神经网络（CNN）</h2>
+<p>任务</p>
+<ul>
+<li>如何使用 PyTorch 进行CNN的训练与测试</li>
+<li>展示池化与卷积操作的作用</li>
+</ul>
+<p>深度卷积神经网络中，有如下特性</p>
+<ul>
+<li>很多层: compositionality</li>
+<li>卷积: locality + stationarity of images</li>
+<li>池化: Invariance of object class to translations</li>
+</ul>
+<pre><code># 一个函数，用来计算模型中有多少参数
+def get_n_params(model):
+    np=0
+    for p in list(model.parameters()):
+        np += p.nelement()
+    return np
+
+# 使用GPU训练，可以在菜单 &quot;代码执行工具&quot; -&gt; &quot;更改运行时类型&quot; 里进行设置
+device = torch.device(&quot;cuda:0&quot; if torch.cuda.is_available() else &quot;cpu&quot;)
+</code></pre>
+<h2 id="1-加载数据-mnist">1. 加载数据 （MNIST）</h2>
+<p>PyTorch里包含了 MNIST， CIFAR10 等常用数据集，调用 torchvision.datasets 即可把这些数据由远程下载到本地，下面给出MNIST的使用方法：<br>
+torchvision.datasets.MNIST(root, train=True, transform=None, target_transform=None, download=False)</p>
+<ul>
+<li>root 为数据集下载到本地后的根目录，包括 training.pt 和 test.pt 文件</li>
+<li>train，如果设置为True，从training.pt创建数据集，否则从test.pt创建。</li>
+<li>download，如果设置为True, 从互联网下载数据并放到root文件夹下</li>
+<li>transform, 一种函数或变换，输入PIL图片，返回变换之后的数据。</li>
+<li>target_transform 一种函数或变换，输入目标，进行变换。<br>
+另外值得注意的是，DataLoader是一个比较重要的类，提供的常用操作有：batch_size(每个batch的大小), shuffle(是否进行随机打乱顺序的操作), num_workers(加载数据的时候使用几个子进程)</li>
+</ul>
+<pre><code>input_size  = 28*28   # MNIST上的图像尺寸是 28x28
+output_size = 10      # 类别为 0 到 9 的数字，因此为十类
+
+train_loader = torch.utils.data.DataLoader(
+    datasets.MNIST('./data', train=True, download=True,
+        transform=transforms.Compose(
+            [transforms.ToTensor(),
+             transforms.Normalize((0.1307,), (0.3081,))])),
+    batch_size=64, shuffle=True)
+
+test_loader = torch.utils.data.DataLoader(
+    datasets.MNIST('./data', train=False, transform=transforms.Compose([
+             transforms.ToTensor(),
+             transforms.Normalize((0.1307,), (0.3081,))])),
+    batch_size=1000, shuffle=True)
+</code></pre>
+<p><img src="https://liuxingguo9349.github.io/oucblog/post-images/1689488007120.png" alt="" loading="lazy"><br>
+显示数据集中的部分图像<br>
+<img src="https://liuxingguo9349.github.io/oucblog/post-images/1689488173034.png" alt="" loading="lazy"></p>
+<pre><code>plt.figure(figsize=(8, 5))
+for i in range(20):
+    plt.subplot(4, 5, i + 1)
+    image, _ = train_loader.dataset.__getitem__(i)
+    plt.imshow(image.squeeze().numpy(),'gray')
+    plt.axis('off');
+</code></pre>
+<h2 id="2-创建网络">2. 创建网络</h2>
+<p>定义网络时，需要继承nn.Module，并实现它的forward方法，把网络中具有可学习参数的层放在构造函数__init__中。<br>
+只要在nn.Module的子类中定义了forward函数，backward函数就会自动被实现(利用autograd)。</p>
+<pre><code>class FC2Layer(nn.Module):
+    def __init__(self, input_size, n_hidden, output_size):
+        # nn.Module子类的函数必须在构造函数中执行父类的构造函数
+        # 下式等价于nn.Module.__init__(self)
+        super(FC2Layer, self).__init__()
+        self.input_size = input_size
+        # 这里直接用 Sequential 就定义了网络，注意要和下面 CNN 的代码区分开
+        self.network = nn.Sequential(
+            nn.Linear(input_size, n_hidden),
+            nn.ReLU(),
+            nn.Linear(n_hidden, n_hidden),
+            nn.ReLU(),
+            nn.Linear(n_hidden, output_size),
+            nn.LogSoftmax(dim=1)
+        )
+    def forward(self, x):
+        # view一般出现在model类的forward函数中，用于改变输入或输出的形状
+        # x.view(-1, self.input_size) 的意思是多维的数据展成二维
+        # 代码指定二维数据的列数为 input_size=784，行数 -1 表示我们不想算，电脑会自己计算对应的数字
+        # 在 DataLoader 部分，我们可以看到 batch_size 是64，所以得到 x 的行数是64
+        # 大家可以加一行代码：print(x.cpu().numpy().shape)
+        # 训练过程中，就会看到 (64, 784) 的输出，和我们的预期是一致的
+
+        # forward 函数的作用是，指定网络的运行过程，这个全连接网络可能看不啥意义，
+        # 下面的CNN网络可以看出 forward 的作用。
+        x = x.view(-1, self.input_size)
+        return self.network(x)
+
+class CNN(nn.Module):
+    def __init__(self, input_size, n_feature, output_size):
+        # 执行父类的构造函数，所有的网络都要这么写
+        super(CNN, self).__init__()
+        # 下面是网络里典型结构的一些定义，一般就是卷积和全连接
+        # 池化、ReLU一类的不用在这里定义
+        self.n_feature = n_feature
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=n_feature, kernel_size=5)
+        self.conv2 = nn.Conv2d(n_feature, n_feature, kernel_size=5)
+        self.fc1 = nn.Linear(n_feature*4*4, 50)
+        self.fc2 = nn.Linear(50, 10)
+
+    # 下面的 forward 函数，定义了网络的结构，按照一定顺序，把上面构建的一些结构组织起来
+    # 意思就是，conv1, conv2 等等的，可以多次重用
+    def forward(self, x, verbose=False):
+        x = self.conv1(x)
+        x = F.relu(x)
+        x = F.max_pool2d(x, kernel_size=2)
+        x = self.conv2(x)
+        x = F.relu(x)
+        x = F.max_pool2d(x, kernel_size=2)
+        x = x.view(-1, self.n_feature*4*4)
+        x = self.fc1(x)
+        x = F.relu(x)
+        x = self.fc2(x)
+        x = F.log_softmax(x, dim=1)
+        return x
+</code></pre>
+<p>定义训练和测试函数</p>
+<pre><code># 训练函数
+def train(model):
+    model.train()
+    # 主里从train_loader里，64个样本一个batch为单位提取样本进行训练
+    for batch_idx, (data, target) in enumerate(train_loader):
+        # 把数据送到GPU中
+        data, target = data.to(device), target.to(device)
+
+        optimizer.zero_grad()
+        output = model(data)
+        loss = F.nll_loss(output, target)
+        loss.backward()
+        optimizer.step()
+        if batch_idx % 100 == 0:
+            print('Train: [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+                batch_idx * len(data), len(train_loader.dataset),
+                1.   * batch_idx / len(train_loader), loss.item()))
+
+
+def test(model):
+    model.eval()
+    test_loss = 0
+    correct = 0
+    for data, target in test_loader:
+        # 把数据送到GPU中
+        data, target = data.to(device), target.to(device)
+        # 把数据送入模型，得到预测结果
+        output = model(data)
+        # 计算本次batch的损失，并加到 test_loss 中
+        test_loss += F.nll_loss(output, target, reduction='sum').item()
+        # get the index of the max log-probability，最后一层输出10个数，
+        # 值最大的那个即对应着分类结果，然后把分类结果保存在 pred 里
+        pred = output.data.max(1, keepdim=True)[1]
+        # 将 pred 与 target 相比，得到正确预测结果的数量，并加到 correct 中
+        # 这里需要注意一下 view_as ，意思是把 target 变成维度和 pred 一样的意思
+        correct += pred.eq(target.data.view_as(pred)).cpu().sum().item()
+
+    test_loss /= len(test_loader.dataset)
+    accuracy = 100. * correct / len(test_loader.dataset)
+    print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+        test_loss, correct, len(test_loader.dataset),
+        accuracy))
+</code></pre>
+<h2 id="3-在小型全连接网络上训练fully-connected-network">3. 在小型全连接网络上训练（Fully-connected network）</h2>
+<pre><code>n_hidden = 8 # number of hidden units
+
+model_fnn = FC2Layer(input_size, n_hidden, output_size)
+model_fnn.to(device)
+optimizer = optim.SGD(model_fnn.parameters(), lr=0.01, momentum=0.5)
+print('Number of parameters: {}'.format(get_n_params(model_fnn)))
+
+train(model_fnn)
+test(model_fnn)
+</code></pre>
+<pre><code>Number of parameters: 6442
+Train: [0/60000 (0%)]	Loss: 2.318534
+Train: [6400/60000 (11%)]	Loss: 1.955423
+Train: [12800/60000 (21%)]	Loss: 1.438875
+Train: [19200/60000 (32%)]	Loss: 0.728443
+Train: [25600/60000 (43%)]	Loss: 0.599893
+Train: [32000/60000 (53%)]	Loss: 0.629695
+Train: [38400/60000 (64%)]	Loss: 0.627684
+Train: [44800/60000 (75%)]	Loss: 0.735600
+Train: [51200/60000 (85%)]	Loss: 0.375173
+Train: [57600/60000 (96%)]	Loss: 0.389437
+
+Test set: Average loss: 0.4584, Accuracy: 8638/10000 (86%)
+</code></pre>
+<h2 id="3-在卷积神经网络上训练">3. 在卷积神经网络上训练</h2>
+<p>需要注意的是，上在定义的CNN和全连接网络，拥有相同数量的模型参数</p>
+<pre><code># Training settings
+n_features = 6 # number of feature maps
+
+model_cnn = CNN(input_size, n_features, output_size)
+model_cnn.to(device)
+optimizer = optim.SGD(model_cnn.parameters(), lr=0.01, momentum=0.5)
+print('Number of parameters: {}'.format(get_n_params(model_cnn)))
+
+train(model_cnn)
+test(model_cnn)
+</code></pre>
+<pre><code>Number of parameters: 6422
+Train: [0/60000 (0%)]	Loss: 2.298037
+Train: [6400/60000 (11%)]	Loss: 1.934684
+Train: [12800/60000 (21%)]	Loss: 0.692961
+Train: [19200/60000 (32%)]	Loss: 0.593910
+Train: [25600/60000 (43%)]	Loss: 0.504916
+Train: [32000/60000 (53%)]	Loss: 0.262568
+Train: [38400/60000 (64%)]	Loss: 0.345097
+Train: [44800/60000 (75%)]	Loss: 0.140525
+Train: [51200/60000 (85%)]	Loss: 0.190530
+Train: [57600/60000 (96%)]	Loss: 0.121602
+
+Test set: Average loss: 0.1706, Accuracy: 9488/10000 (95%)
+</code></pre>
+<p>通过上面的测试结果，可以发现，含有相同参数的 CNN 效果要明显优于 简单的全连接网络，是因为 CNN 能够更好的挖掘图像中的信息，主要通过两个手段：</p>
+<ul>
+<li>卷积：Locality and stationarity in images</li>
+<li>池化：Builds in some translation invariance</li>
+</ul>
+<h2 id="5-打乱像素顺序再次在两个网络上训练与测试">5. 打乱像素顺序再次在两个网络上训练与测试</h2>
+<p>考虑到CNN在卷积与池化上的优良特性，如果我们把图像中的像素打乱顺序，这样 卷积 和 池化 就难以发挥作用了，为了验证这个想法，我们把图像中的像素打乱顺序再试试。<br>
+首先下面代码展示随机打乱像素顺序后，图像的形态：</p>
+<pre><code># 这里解释一下 torch.randperm 函数，给定参数n，返回一个从0到n-1的随机整数排列
+perm = torch.randperm(784)
+plt.figure(figsize=(8, 4))
+for i in range(10):
+    image, _ = train_loader.dataset.__getitem__(i)
+    # permute pixels
+    image_perm = image.view(-1, 28*28).clone()
+    image_perm = image_perm[:, perm]
+    image_perm = image_perm.view(-1, 1, 28, 28)
+    plt.subplot(4, 5, i + 1)
+    plt.imshow(image.squeeze().numpy(), 'gray')
+    plt.axis('off')
+    plt.subplot(4, 5, i + 11)
+    plt.imshow(image_perm.squeeze().numpy(), 'gray')
+    plt.axis('off')
+</code></pre>
+<p><img src="https://liuxingguo9349.github.io/oucblog/post-images/1689488544742.png" alt="" loading="lazy"><br>
+重新定义训练与测试函数，我们写了两个函数 train_perm 和 test_perm，分别对应着加入像素打乱顺序的训练函数与测试函数。</p>
+<p>与之前的训练与测试函数基本上完全相同，只是对 data 加入了打乱顺序操作。</p>
+<pre><code># 对每个 batch 里的数据，打乱像素顺序的函数
+def perm_pixel(data, perm):
+    # 转化为二维矩阵
+    data_new = data.view(-1, 28*28)
+    # 打乱像素顺序
+    data_new = data_new[:, perm]
+    # 恢复为原来4维的 tensor
+    data_new = data_new.view(-1, 1, 28, 28)
+    return data_new
+
+# 训练函数
+def train_perm(model, perm):
+    model.train()
+    for batch_idx, (data, target) in enumerate(train_loader):
+        data, target = data.to(device), target.to(device)
+        # 像素打乱顺序
+        data = perm_pixel(data, perm)
+
+        optimizer.zero_grad()
+        output = model(data)
+        loss = F.nll_loss(output, target)
+        loss.backward()
+        optimizer.step()
+        if batch_idx % 100 == 0:
+            print('Train: [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+                batch_idx * len(data), len(train_loader.dataset),
+                1.   * batch_idx / len(train_loader), loss.item()))
+
+# 测试函数
+def test_perm(model, perm):
+    model.eval()
+    test_loss = 0
+    correct = 0
+    for data, target in test_loader:
+        data, target = data.to(device), target.to(device)
+
+        # 像素打乱顺序
+        data = perm_pixel(data, perm)
+
+        output = model(data)
+        test_loss += F.nll_loss(output, target, reduction='sum').item()
+        pred = output.data.max(1, keepdim=True)[1]
+        correct += pred.eq(target.data.view_as(pred)).cpu().sum().item()
+
+    test_loss /= len(test_loader.dataset)
+    accuracy = 100. * correct / len(test_loader.dataset)
+    print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+        test_loss, correct, len(test_loader.dataset),
+        accuracy))
+</code></pre>
+<p>在全连接网络上训练与测试：</p>
+<pre><code>perm = torch.randperm(784)
+n_hidden = 8 # number of hidden units
+
+model_fnn = FC2Layer(input_size, n_hidden, output_size)
+model_fnn.to(device)
+optimizer = optim.SGD(model_fnn.parameters(), lr=0.01, momentum=0.5)
+print('Number of parameters: {}'.format(get_n_params(model_fnn)))
+
+train_perm(model_fnn, perm)
+test_perm(model_fnn, perm)
+</code></pre>
+<pre><code>Number of parameters: 6442
+Train: [0/60000 (0%)]	Loss: 2.299548
+Train: [6400/60000 (11%)]	Loss: 1.867092
+Train: [12800/60000 (21%)]	Loss: 1.380109
+Train: [19200/60000 (32%)]	Loss: 1.008134
+Train: [25600/60000 (43%)]	Loss: 0.562562
+Train: [32000/60000 (53%)]	Loss: 0.462806
+Train: [38400/60000 (64%)]	Loss: 0.474230
+Train: [44800/60000 (75%)]	Loss: 0.595156
+Train: [51200/60000 (85%)]	Loss: 0.350517
+Train: [57600/60000 (96%)]	Loss: 0.473658
+
+Test set: Average loss: 0.3876, Accuracy: 8872/10000 (89%)
+</code></pre>
+<p>在卷积神经网络上训练与测试：</p>
+<pre><code>perm = torch.randperm(784)
+n_features = 6 # number of feature maps
+
+model_cnn = CNN(input_size, n_features, output_size)
+model_cnn.to(device)
+optimizer = optim.SGD(model_cnn.parameters(), lr=0.01, momentum=0.5)
+print('Number of parameters: {}'.format(get_n_params(model_cnn)))
+
+train_perm(model_cnn, perm)
+test_perm(model_cnn, perm)
+</code></pre>
+<pre><code>Number of parameters: 6422
+Train: [0/60000 (0%)]	Loss: 2.309665
+Train: [6400/60000 (11%)]	Loss: 2.289345
+Train: [12800/60000 (21%)]	Loss: 2.235667
+Train: [19200/60000 (32%)]	Loss: 2.065696
+Train: [25600/60000 (43%)]	Loss: 1.729816
+Train: [32000/60000 (53%)]	Loss: 1.292036
+Train: [38400/60000 (64%)]	Loss: 1.126578
+Train: [44800/60000 (75%)]	Loss: 1.071353
+Train: [51200/60000 (85%)]	Loss: 0.879011
+Train: [57600/60000 (96%)]	Loss: 0.915721
+
+Test set: Average loss: 0.6583, Accuracy: 7975/10000 (80%)
+</code></pre>
+<p>从打乱像素顺序的实验结果来看，全连接网络的性能基本上没有发生变化，但是 卷积神经网络的性能明显下降。<br>
+这是因为对于卷积神经网络，会利用像素的局部关系，但是打乱顺序以后，这些像素间的关系将无法得到利用。</p>
+<h2 id="6-totchvision">6. totchvision</h2>
+<p>PyTorch 创建了一个叫做 totchvision 的包，该包含有支持加载类似Imagenet，CIFAR10，MNIST等公共数据集的数据加载模块 torchvision.datasets 和支持加载图像数据数据转换模块 torch.utils.data.DataLoader。<br>
+下面将使用CIFAR10数据集，它包含十个类别：‘airplane’, ‘automobile’, ‘bird’, ‘cat’, ‘deer’, ‘dog’, ‘frog’, ‘horse’, ‘ship’, ‘truck’。CIFAR-10 中的图像尺寸为3x32x32，也就是RGB的3层颜色通道，每层通道内的尺寸为32*32。<br>
+<img src="https://liuxingguo9349.github.io/oucblog/post-images/1689574384594.png" alt="" loading="lazy"></p>
+<pre><code># 使用GPU训练，可以在菜单 &quot;代码执行工具&quot; -&gt; &quot;更改运行时类型&quot; 里进行设置
+device = torch.device(&quot;cuda:0&quot; if torch.cuda.is_available() else &quot;cpu&quot;)
+
+transform = transforms.Compose(
+    [transforms.ToTensor(),
+     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+
+# 注意下面代码中：训练的 shuffle 是 True，测试的 shuffle 是 false
+# 训练时可以打乱顺序增加多样性，测试是没有必要
+trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
+                                        download=True, transform=transform)
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=64,
+                                          shuffle=True, num_workers=2)
+
+testset = torchvision.datasets.CIFAR10(root='./data', train=False,
+                                       download=True, transform=transform)
+testloader = torch.utils.data.DataLoader(testset, batch_size=8,
+                                         shuffle=False, num_workers=2)
+
+classes = ('plane', 'car', 'bird', 'cat',
+           'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+</code></pre>
+<figure data-type="image" tabindex="1"><img src="https://liuxingguo9349.github.io/oucblog/post-images/1689574514617.png" alt="" loading="lazy"></figure>
+<pre><code>def imshow(img):
+    plt.figure(figsize=(8,8))
+    img = img / 2 + 0.5     # 转换到 [0,1] 之间
+    npimg = img.numpy()
+    plt.imshow(np.transpose(npimg, (1, 2, 0)))
+    plt.show()
+
+# 得到一组图像
+images, labels = next(iter(trainloader))  # 注意将iter(trainloader)放到next里面
+# 展示图像
+imshow(torchvision.utils.make_grid(images))
+# 展示第一行图像的标签
+for j in range(8):
+    print(classes[labels[j]])
+</code></pre>
+<p><img src="https://liuxingguo9349.github.io/oucblog/post-images/1689575344230.png" alt="" loading="lazy"><br>
+truck<br>
+truck<br>
+dog<br>
+truck<br>
+dog<br>
+horse<br>
+frog<br>
+bird<br>
+<em>接下来定义网络，损失函数和优化器：</em></p>
+<pre><code>class Net(nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()
+        self.conv1 = nn.Conv2d(3, 6, 5)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.conv2 = nn.Conv2d(6, 16, 5)
+        self.fc1 = nn.Linear(16 * 5 * 5, 120)
+        self.fc2 = nn.Linear(120, 84)
+        self.fc3 = nn.Linear(84, 10)
+
+    def forward(self, x):
+        x = self.pool(F.relu(self.conv1(x)))
+        x = self.pool(F.relu(self.conv2(x)))
+        x = x.view(-1, 16 * 5 * 5)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+        return x
+
+# 网络放到GPU上
+net = Net().to(device)
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(net.parameters(), lr=0.001)
+</code></pre>
+<p>训练网络：</p>
+<pre><code>for epoch in range(10):  # 重复多轮训练
+    for i, (inputs, labels) in enumerate(trainloader):
+        inputs = inputs.to(device)
+        labels = labels.to(device)
+        # 优化器梯度归零
+        optimizer.zero_grad()
+        # 正向传播 +　反向传播 + 优化 
+        outputs = net(inputs)
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
+        # 输出统计信息
+        if i % 100 == 0:   
+            print('Epoch: %d Minibatch: %5d loss: %.3f' %(epoch + 1, i + 1, loss.item()))
+
+print('Finished Training')
+</code></pre>
+<p>从测试集中取出8张图片：</p>
+<pre><code># 得到一组图像
+images, labels = iter(testloader).next()
+# 展示图像
+imshow(torchvision.utils.make_grid(images))
+# 展示图像的标签
+for j in range(8):
+    print(classes[labels[j]])
+</code></pre>
+<p><img src="https://liuxingguo9349.github.io/oucblog/post-images/1689575724392.png" alt="" loading="lazy"><br>
+观察CNN识别情况</p>
+<pre><code>outputs = net(images.to(device))
+_, predicted = torch.max(outputs, 1)
+
+# 展示预测的结果
+for j in range(8):
+    print(classes[predicted[j]])
+</code></pre>
+<p>cat<br>
+ship<br>
+plane<br>
+plane<br>
+deer<br>
+frog<br>
+car<br>
+frog<br>
+再看看识别率</p>
+<pre><code>correct = 0
+total = 0
+
+for data in testloader:
+    images, labels = data
+    images, labels = images.to(device), labels.to(device)
+    outputs = net(images)
+    _, predicted = torch.max(outputs.data, 1)
+    total += labels.size(0)
+    correct += (predicted == labels).sum().item()
+
+print('Accuracy of the network on the 10000 test images: %d %%' % (
+    100 * correct / total))
+</code></pre>
+<p>Accuracy of the network on the 10000 test images: 63 %</p>
+<h2 id="1-dataloader-里面-shuffle-取不同值有什么区别">1、dataloader 里面 shuffle 取不同值有什么区别？</h2>
+<p>dataloader里面shuffle的作用是在每个epoch开始时，随机打乱数据集的顺序，这样可以避免模型过拟合或者陷入局部最优。如果shuffle取不同值，那么就会影响dataloader返回的样本顺序，从而影响模型的训练效果。一般来说，训练集的shuffle应该设为True，而验证集或测试集的shuffle可以设为False。如果想要在多个epoch或多次iteration中保持固定的样本顺序，可以使用SequentialSampler来替代默认的RandomSampler。</p>
+<h2 id="2-transform-里取了不同值这个有什么区别">2、transform 里，取了不同值，这个有什么区别？</h2>
+<p>transform是pytorch中的图像预处理包，它可以对图像数据进行不同的变换，比如裁剪、翻转、缩放、归一化等。transform里面有很多函数，每个函数都有不同的作用和参数。</p>
+<h2 id="3-epoch-和-batch-的区别">3、epoch 和 batch 的区别？</h2>
+<p>epoch指的是整个训练数据集通过神经网络的次数，也就是一次完整的训练过程。batch指的是每次更新模型参数之前，使用的样本数量。batch可以分为三种类型，分别是batch gradient descent, stochastic gradient descent和mini-batch gradient descent。batch gradient descent使用所有的训练数据来计算梯度和更新参数，但是这样会很耗时和低效。stochastic gradient descent使用单个样本来计算梯度和更新参数，但是这样会导致梯度方向不稳定，难以收敛到最优解。mini-batch gradient descent使用一组样本（小于整个数据集）来计算梯度和更新参数，这样可以平衡计算效率和收敛速度。因此，epoch和batch的区别在于，epoch是训练过程中的一个循环单位，而batch是训练过程中的一个迭代单位。</p>
+<h2 id="4-1x1的卷积和-fc-有什么区别主要起什么作用">4、1x1的卷积和 FC 有什么区别？主要起什么作用？</h2>
+<p>1x1的卷积和FC（全连接层）有一些相似之处，也有一些区别。相似之处在于，1x1的卷积可以看作是对每个输入通道进行一个线性变换，然后将不同通道的结果相加，得到一个输出通道。这个过程和FC层的矩阵乘法和偏置相加是等价的。区别在于，FC层要求输入有一个固定的大小，而卷积层可以接受任意大小的输入。因此，1x1的卷积可以替代FC层，实现更灵活的网络结构。1x1的卷积主要起到两个作用：一是降维，减少特征图的数量，从而减少参数和计算量；二是增维，增加特征图的数量，从而增强网络的表达能力。</p>
+<h2 id="5-residual-leanring-为什么能够提升准确率">5、residual leanring 为什么能够提升准确率？</h2>
+<p>residual learning能够提升准确率的原因有以下几点：一是它可以增加网络的深度，从而增强网络的表达能力；二是它可以实现跨层的信息传递，从而加速网络的收敛；三是它可以保留输入的主要信息，从而减少信息的丢失。residual learning已经被广泛应用于图像识别、目标检测、场景识别等领域，取得了很好的效果。</p>
+<h2 id="6-代码练习二里网络和1989年-lecun-提出的-lenet-有什么区别">6、代码练习二里，网络和1989年 Lecun 提出的 LeNet 有什么区别？</h2>
+<p>代码练习二里的网络和1989年Lecun提出的LeNet有以下几个区别：一是网络使用了ReLU作为激活函数，而LeNet使用了Sigmoid或者Tanh作为激活函数；二是网络使用了MaxPool作为池化层，而LeNet使用了AveragePool作为池化层；三是网络的输入通道数是3，而LeNet的输入通道数是1；四是上述网络的卷积核大小是5x5，而LeNet的卷积核大小是3x3或者5x5；五是上述网络的全连接层有三层，而LeNet的全连接层有两层。</p>
+<h2 id="7-代码练习二里卷积以后feature-map-尺寸会变小如何应用-residual-learning">7、代码练习二里，卷积以后feature map 尺寸会变小，如何应用 Residual Learning?</h2>
+<p>卷积以后feature map尺寸会变小，这会导致输入和输出的尺寸不匹配，从而无法应用residual learning。为了解决这个问题，有两种常用的方法：一是在shortcut connection上使用一个1x1的卷积层，来调整输入的通道数和尺寸，使之与输出相同；二是在shortcut connection上使用一个下采样层（如MaxPool或AvgPool），来调整输入的尺寸，使之与输出相同。这两种方法都可以保证输入和输出能够相加，从而实现residual learning。</p>
+<h2 id="8-有什么方法可以进一步提升准确率">8、有什么方法可以进一步提升准确率？</h2>
+<p>一是增加数据量，或者使用数据增强的方法来扩充数据集，这样可以提高模型的泛化能力，避免过拟合；二是归一化或者标准化输入数据，这样可以加速模型的收敛，也可以减少输入特征的尺度差异对模型的影响；三是增加网络的深度或者宽度，这样可以增强网络的表达能力，学习更复杂的特征和模式；四是调整网络的超参数，如学习率、优化器、激活函数、正则化等，这样可以找到最适合模型性能的参数组合；五是使用预训练的模型或者迁移学习的方法，这样可以利用已有的知识来初始化模型或者微调模型。</p>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://liuxingguo9349.github.io/oucblog/post/di-1-zhou-shen-du-xue-xi-ji-chu/">
+                  <h3 class="post-title">
+                    【第1周】深度学习基础
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+  <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  <script>
+    hljs.initHighlightingOnLoad()
+  </script>
+
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '079cee914f76656b4b21',
+        clientSecret: 'bff979ffe33350b2717332f1f8459c0533f59a96',
+        repo: 'oucblog',
+        owner: 'liuxingguo9349',
+        admin: ['liuxingguo9349'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+
+
+  </body>
+</html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>【第4周】MobileNet_ShuffleNet | 刘兴国的博客</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://liuxingguo9349.github.io/oucblog/favicon.ico?v=1691316527300">
+<link rel="stylesheet" href="https://liuxingguo9349.github.io/oucblog/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css" />
+  
+
+  
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="MobileNet V1和V2是两种轻量级的神经网络，主要用于图像分类和目标检测等移动端的视觉任务。它们的主要区别在于以下几个方面：
+
+MobileNet V1使用了深度可分离卷积（Depthwise Separable Convoluti..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://liuxingguo9349.github.io/oucblog">
+        <img src="https://liuxingguo9349.github.io/oucblog/images/avatar.png?v=1691316527300" class="site-logo">
+        <h1 class="site-title">刘兴国的博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/oucblog/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/oucblog/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/oucblog/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/oucblog/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/liuxingguo9349" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      以梦为马，不负韶华
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">刘兴国的博客</a> | <a class="rss" href="https://liuxingguo9349.github.io/oucblog/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">【第4周】MobileNet_ShuffleNet</h2>
+            <div class="post-date">2023-08-06</div>
+            
+            <div class="post-content" v-pre>
+              <p>MobileNet V1和V2是两种轻量级的神经网络，主要用于图像分类和目标检测等移动端的视觉任务。它们的主要区别在于以下几个方面：</p>
+<ul>
+<li>MobileNet V1使用了深度可分离卷积（Depthwise Separable Convolution），将标准的卷积分解为深度卷积（Depthwise Convolution）和逐点卷积（Pointwise Convolution），从而减少了计算量和参数量。</li>
+<li>MobileNet V2引入了线性瓶颈（Linear Bottleneck）和反向残差结构（Inverted Residual Block），将输入和输出的通道数降低，而在中间层使用较多的通道数，从而提高了特征表达能力。</li>
+<li>MobileNet V2还使用了线性激活函数（Linear Activation）替换了V1中的ReLU激活函数，避免了在低维空间中特征退化（Feature Degradation）的问题。</li>
+</ul>
+<p>MobileNet V2相比V1在性能上有一定的提升，同时也保持了轻量级的特点。它们都是适合在移动设备上运行的高效网络。</p>
+<p>MobileNet V3是一种轻量级的卷积神经网络，主要用于移动端的图像分类和目标检测等视觉任务。它是基于网络结构搜索（NAS）和NetAdapt算法优化得到的，同时也引入了一些新的架构设计，如线性瓶颈、反向残差结构、h-swish激活函数和SE通道注意力机制。MobileNet V3有两个版本：Large和Small，分别适用于高性能和低资源的场景。相比于前两代的MobileNet V1和V2，MobileNet V3在准确率和速度上都有显著的提升，达到了移动端网络的新的水平。</p>
+<p>ShuffleNetV1是一种轻量级的卷积神经网络，主要用于移动端的图像分类和目标检测等视觉任务。它的基本原理是利用分组卷积（Group Convolution）和通道混洗（Channel Shuffle）来减少计算量和参数量，同时提高模型的表达能力和泛化能力。</p>
+<p>分组卷积是将输入的特征图按照通道维度分成若干个组，然后每个组使用不同的卷积核进行卷积，最后将各个组的输出拼接起来。这样可以减少卷积核的数量，从而降低计算复杂度。但是，分组卷积也有一个缺点，就是每个组内的通道只能与自己组内的通道进行交互，而不能与其他组的通道进行交互，这会降低特征的多样性和丰富性。</p>
+<p>通道混洗是为了解决分组卷积的这个缺点而提出的一种操作。它的作用是在分组卷积之后，将各个组内的通道重新排列，使得每个组内的通道都包含了其他组的信息，从而增强了特征的多样性和丰富性。具体来说，通道混洗的步骤如下：</p>
+<ul>
+<li>假设输入特征图有 c 个通道，分成 g 个组，每个组有 c/g 个通道。</li>
+<li>将输入特征图按照通道维度重塑为 (g, c/g, h, w) 的形状，其中 h 和 w 是特征图的高度和宽度。</li>
+<li>将重塑后的特征图在第一维和第二维进行转置，得到 (c/g, g, h, w) 的形状。</li>
+<li>将转置后的特征图再按照通道维度重塑为 (c, h, w) 的形状。</li>
+</ul>
+<p>通过这样的操作，原来每个组内只有 c/g 个不同的通道，现在每个组内有 g 个不同的通道，且每个通道都包含了其他组的信息。这样就实现了通道之间的信息交流，增强了模型的表达能力。</p>
+<p>ShuffleNetV1的网络结构由多个基本单元（ShuffleNet Unit）构成，每个基本单元包含两个分组卷积和一个深度可分离卷积（Depthwise Separable Convolution），以及一个残差连接（Residual Connection）。在第一个分组卷积之后，还要进行一次通道混洗操作。根据步长（Stride）的不同，基本单元可以分为两种类型：步长为 1 的基本单元采用残差相加（Residual Add）来实现残差连接；步长为 2 的基本单元采用残差拼接（Residual Concat）来实现残差连接。</p>
+<p>ShuffleNetV1还根据不同的计算量设置了不同的分组数（Group Number），以适应不同的硬件平台。一般来说，分组数越大，计算量越小，但是准确率也越低；分组数越小，计算量越大，但是准确率也越高。原论文中给出了三种分组数：1、2、3、8。</p>
+<p>SENet是一种基于注意力机制的卷积神经网络，主要用于图像分类和目标检测等视觉任务。它的基本原理是通过一个称为“Squeeze-and-Excitation”的模块，来学习和调整每个通道的特征权重，从而提高特征的判别能力和网络性能。</p>
+<p>Squeeze-and-Excitation模块包含两个操作：Squeeze和Excitation。Squeeze操作是对输入的特征图进行全局平均池化，将其压缩成一个特征向量，以捕捉全局的特征统计信息。Excitation操作是对压缩后的特征向量进行两次全连接层和非线性激活函数的变换，以学习每个通道的权重向量。这个权重向量被应用于原始的特征图上的每个通道，以对不同通道的特征进行加权。通过这种方式，SENet能够自适应地选择和强调重要的特征通道，提高特征的判别能力。</p>
+<p>SENet可以很容易地集成到现有的卷积神经网络中，只需要在每个卷积层后面加上一个Squeeze-and-Excitation模块即可。这样做可以显著提升网络性能，而且代价很小。SENet在ImageNet 2017竞赛中获得了图像分类任务的冠军，将top-5错误率降低到2.251%，创造了新的纪录。</p>
+<h2 id="1-训练hybridsn然后多测试几次会发现每次分类的结果都不一样请思考为什么">1、训练HybridSN，然后多测试几次，会发现每次分类的结果都不一样，请思考为什么？</h2>
+<p>HybridSN是一种混合了3D和2D卷积神经网络的模型，用于高光谱图像分类。训练HybridSN的过程中，有一些随机因素会影响每次分类的结果，例如：</p>
+<ul>
+<li>初始化权重：HybridSN的网络参数在训练之前需要进行随机初始化，不同的初始化值会导致不同的梯度下降方向和收敛速度，从而影响最终的分类效果。</li>
+<li>随机梯度下降（SGD）：HybridSN使用SGD作为优化算法，每次只使用一个小批量（mini-batch）的数据来更新网络参数，这样可以提高训练速度和泛化能力，但也会引入一定的噪声和不稳定性，导致每次迭代的结果有所差异。</li>
+<li>Dropout层：HybridSN在2D卷积层后面加入了Dropout层，用于随机丢弃一些神经元，以防止过拟合和增加模型的鲁棒性。但是，Dropout层也会使得每次训练的网络结构不完全相同，从而影响每次分类的结果。</li>
+<li>数据集划分：HybridSN使用一部分数据作为训练集，另一部分数据作为测试集。如果数据集划分的方式不固定，那么每次训练和测试的数据可能不同，这也会导致每次分类的结果有所变化。</li>
+</ul>
+<h2 id="2-如果想要进一步提升高光谱图像的分类性能可以如何改进">2、如果想要进一步提升高光谱图像的分类性能，可以如何改进？</h2>
+<p>高光谱图像分类是一个具有挑战性和重要性的研究领域，一些改进的空间和方向：</p>
+<ul>
+<li>利用深度学习方法来提取高光谱图像的特征。深度学习方法可以自动学习高层次的抽象特征，而不需要人工设计或选择特征。深度学习方法也可以利用大量的数据来提高模型的泛化能力和鲁棒性。已经有一些基于卷积神经网络（CNN）或者变换器（Transformer）的方法被提出来，如MST¹、MST++²、HybridSN³等，都取得了不错的效果。</li>
+<li>利用多源数据或者多模态数据来辅助高光谱图像分类。高光谱图像虽然包含了丰富的光谱信息，但是也存在一些局限性，如空间分辨率低、数据冗余大、光谱混合严重等。为了克服这些局限性，可以利用其他类型的数据来提供更多的信息，如RGB图像、LiDAR数据、DEM数据等。这些数据可以与高光谱图像进行融合或者联合分析，以提高分类的准确性和可靠性。</li>
+<li>利用半监督学习或者无监督学习来降低对标注数据的依赖。高光谱图像分类通常需要大量的标注数据来训练模型，但是标注数据的获取是一件耗时耗力的工作，而且可能存在标注错误或者不一致的问题。为了降低对标注数据的依赖，可以利用半监督学习或者无监督学习的方法，利用未标注数据或者自身数据来增强模型的学习能力。</li>
+</ul>
+<h2 id="3-depth-wise-conv-和-分组卷积有什么区别与联系">3、depth-wise conv 和 分组卷积有什么区别与联系？</h2>
+<p>Depth-wise conv 和 分组卷积是两种减少卷积参数量和计算量的方法，它们都是将输入特征图按照通道维度分成若干个组，然后对每个组进行卷积操作，最后将各个组的输出拼接起来。它们的区别和联系如下：</p>
+<ul>
+<li>Depth-wise conv 是一种特殊的分组卷积，它的分组数量等于输入特征图的通道数，也就是每个通道单独进行卷积，不与其他通道交互。Depth-wise conv 只能保持输入和输出特征图的通道数一致，不能改变通道数。因此，Depth-wise conv 通常需要配合 Point-wise conv（即1x1的卷积）来实现通道数的变化。Depth-wise conv 的参数量和计算量是最少的，但是也可能损失一些特征的多样性和丰富性。</li>
+<li>分组卷积是一种更一般的方法，它的分组数量可以自由设定，只要能被输入和输出特征图的通道数整除即可。分组卷积可以实现输入和输出特征图的通道数变化，也可以保持不变。分组卷积的参数量和计算量取决于分组数量，一般来说，分组数量越大，参数量和计算量越小，但是准确率也越低；分组数量越小，参数量和计算量越大，但是准确率也越高。当分组数量为1时，分组卷积就退化为常规卷积；当分组数量等于输入特征图的通道数时，分组卷积就变成了Depth-wise conv。</li>
+</ul>
+<h2 id="4-senet-的注意力是不是可以加在空间位置上">4、SENet 的注意力是不是可以加在空间位置上？</h2>
+<p>SENet的注意力是基于通道维度的，也就是说，它可以学习和调整每个通道的特征权重，从而提高特征的判别能力。但是，SENet并没有考虑空间维度的信息，也就是说，它没有区分不同位置的特征的重要性。因此，SENet的注意力可以加在空间位置上，以进一步提高模型的性能。</p>
+<h2 id="5-在-shufflenet-中通道的-shuffle-如何用代码实现">5、在 ShuffleNet 中，通道的 shuffle 如何用代码实现？</h2>
+<pre><code>def channel_shuffle(x, groups):
+    # x 是一个四维张量，形状为 [batch_size, channels, height, width]
+    batch_size, channels, height, width = x.size()
+    # 确保通道数能被分组数整除
+    assert channels % groups == 0
+    # 将通道按照分组数进行分组
+    channels_per_group = channels // groups
+    # 将张量的形状改为 [batch_size, groups, channels_per_group, height, width]
+    x = x.view(batch_size, groups, channels_per_group, height, width)
+    # 将分组和通道进行转置
+    x = x.transpose(1, 2).contiguous()
+    # 将张量的形状恢复为 [batch_size, channels, height, width]
+    x = x.view(batch_size, -1, height, width)
+    return x
+</code></pre>
+<p>这段代码的思路是先将输入张量按照分组数进行分组，然后将不同组之间的通道进行转置，最后恢复原来的张量形状，这样就实现了通道的shuffle。</p>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://liuxingguo9349.github.io/oucblog/post/di-3-zhou-resnetresnext/">
+                  <h3 class="post-title">
+                    【第3周】ResNet+ResNeXt
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+  <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  <script>
+    hljs.initHighlightingOnLoad()
+  </script>
+
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '079cee914f76656b4b21',
+        clientSecret: 'bff979ffe33350b2717332f1f8459c0533f59a96',
+        repo: 'oucblog',
+        owner: 'liuxingguo9349',
+        admin: ['liuxingguo9349'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+
+
+  </body>
+</html>
